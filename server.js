@@ -49,6 +49,27 @@ pool.query(`
   console.error("Lỗi tạo bảng messages:", err.message);
 });
 
+pool.query(`
+  ALTER TABLE messages
+  ADD COLUMN IF NOT EXISTS reply_to_id INTEGER
+`).catch(function (err) {
+  console.error("Lỗi thêm cột reply_to_id:", err.message);
+});
+
+pool.query(`
+  ALTER TABLE messages
+  ADD COLUMN IF NOT EXISTS reply_to_username TEXT
+`).catch(function (err) {
+  console.error("Lỗi thêm cột reply_to_username:", err.message);
+});
+
+pool.query(`
+  ALTER TABLE messages
+  ADD COLUMN IF NOT EXISTS reply_to_message TEXT
+`).catch(function (err) {
+  console.error("Lỗi thêm cột reply_to_message:", err.message);
+});
+
 // API kiểm tra backend
 app.get("/api", function (req, res) {
   res.json({
@@ -411,7 +432,7 @@ app.delete("/delete-account", async function (req, res) {
 app.get("/api/messages", async function (req, res) {
   try {
     const result = await pool.query(
-      "SELECT id, username, message, created_at FROM messages ORDER BY id ASC LIMIT 100"
+      "SELECT id, username, message, created_at, reply_to_id, reply_to_username, reply_to_message FROM messages ORDER BY id ASC LIMIT 100"
     );
 
     res.json({
@@ -541,10 +562,19 @@ io.on("connection", function (socket) {
         return;
       }
 
-      const result = await pool.query(
-        "INSERT INTO messages (username, message) VALUES ($1, $2) RETURNING id, username, message, created_at",
-        [username, message]
-      );
+      const replyToId = data.replyToId || null;
+const replyToUsername = data.replyToUsername || null;
+const replyToMessage = data.replyToMessage || null;
+
+const result = await pool.query(
+  `
+  INSERT INTO messages 
+  (username, message, reply_to_id, reply_to_username, reply_to_message) 
+  VALUES ($1, $2, $3, $4, $5) 
+  RETURNING id, username, message, created_at, reply_to_id, reply_to_username, reply_to_message
+  `,
+  [username, message, replyToId, replyToUsername, replyToMessage]
+);
 
       const newMessage = result.rows[0];
 

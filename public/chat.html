@@ -301,6 +301,70 @@
   margin-top: 4px;
   opacity: 0.8;
 }
+.reply-preview {
+  margin-bottom: 8px;
+  padding: 9px 11px;
+  border-left: 3px solid #00d4ff;
+  background: rgba(0, 212, 255, 0.12);
+  border-radius: 12px;
+  color: #dff8ff;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.reply-preview strong {
+  color: #8eeaff;
+}
+
+.reply-box {
+  display: none;
+  margin: 0 18px 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(0, 212, 255, 0.12);
+  border: 1px solid rgba(0, 212, 255, 0.22);
+  color: white;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.reply-box.show {
+  display: flex;
+}
+
+.reply-box-text {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #dff8ff;
+}
+
+.reply-box button {
+  border: none;
+  background: rgba(255,255,255,0.12);
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.reply-message-btn {
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: #eaf6ff;
+  border: 1px solid rgba(255,255,255,0.18);
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-right: 6px;
+}
+
+.reply-message-btn:hover {
+  background: rgba(255,255,255,0.22);
+}
   </style>
 </head>
 
@@ -324,6 +388,10 @@
 
     <div class="status" id="statusText"></div>
 
+    <div class="reply-box" id="replyBox">
+  <div class="reply-box-text" id="replyBoxText"></div>
+  <button onclick="cancelReply()">×</button>
+</div>
     <div class="chat-input">
       <input id="messageInput" placeholder="Nhập tin nhắn..." />
       <button onclick="sendMessage()">Gửi</button>
@@ -339,6 +407,10 @@
   const messageInput = document.getElementById("messageInput");
   const messagesBox = document.getElementById("messages");
   const statusText = document.getElementById("statusText");
+  const replyBox = document.getElementById("replyBox");
+const replyBoxText = document.getElementById("replyBoxText");
+
+let replyingTo = null;
 
  const savedUser = localStorage.getItem("currentUser");
 
@@ -415,17 +487,39 @@ function addMessage(item) {
   meta.className = "message-meta";
   meta.textContent = item.username + " • " + formatTime(item.created_at);
 
-  const bubble = document.createElement("div");
-  bubble.className = "bubble";
-  bubble.innerHTML = escapeHTML(item.message);
-
   content.appendChild(meta);
-  content.appendChild(bubble);
 
- if (isMine) {
-  const tools = document.createElement("div");
-  tools.className = "message-tools";
+if (item.reply_to_message) {
+  const replyPreview = document.createElement("div");
+  replyPreview.className = "reply-preview";
+  replyPreview.innerHTML =
+    "<strong>" +
+    escapeHTML(item.reply_to_username || "Người dùng") +
+    "</strong><br>" +
+    escapeHTML(item.reply_to_message);
 
+  content.appendChild(replyPreview);
+}
+
+const bubble = document.createElement("div");
+bubble.className = "bubble";
+bubble.innerHTML = escapeHTML(item.message);
+
+content.appendChild(bubble);
+
+const tools = document.createElement("div");
+tools.className = "message-tools";
+
+const replyBtn = document.createElement("button");
+replyBtn.className = "reply-message-btn";
+replyBtn.textContent = "Trả lời";
+replyBtn.onclick = function () {
+  startReply(item);
+};
+
+tools.appendChild(replyBtn);
+
+if (isMine) {
   const editBtn = document.createElement("button");
   editBtn.className = "edit-message-btn";
   editBtn.textContent = "Sửa";
@@ -442,8 +536,9 @@ function addMessage(item) {
 
   tools.appendChild(editBtn);
   tools.appendChild(deleteBtn);
-  content.appendChild(tools);
 }
+
+content.appendChild(tools);
   line.appendChild(avatar);
   line.appendChild(content);
   row.appendChild(line);
@@ -473,6 +568,28 @@ function addMessage(item) {
       statusText.textContent = "Không kết nối được server chat.";
     }
   }
+function startReply(item) {
+  replyingTo = {
+    id: item.id,
+    username: item.username,
+    message: item.message
+  };
+
+  replyBoxText.innerHTML =
+    "Đang trả lời <strong>" +
+    escapeHTML(item.username) +
+    "</strong>: " +
+    escapeHTML(item.message);
+
+  replyBox.classList.add("show");
+  messageInput.focus();
+}
+
+function cancelReply() {
+  replyingTo = null;
+  replyBox.classList.remove("show");
+  replyBoxText.textContent = "";
+}
 
   function sendMessage() {
     const username = usernameInput.value.trim();
@@ -490,10 +607,15 @@ function addMessage(item) {
 
     localStorage.setItem("chat_username", username);
 
-    socket.emit("send_message", {
-      username: username,
-      message: message
-    });
+   socket.emit("send_message", {
+  username: username,
+  message: message,
+  replyToId: replyingTo ? replyingTo.id : null,
+  replyToUsername: replyingTo ? replyingTo.username : null,
+  replyToMessage: replyingTo ? replyingTo.message : null
+});
+
+cancelReply();
 
     messageInput.value = "";
     statusText.textContent = "";
