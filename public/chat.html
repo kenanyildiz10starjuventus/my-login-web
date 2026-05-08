@@ -134,6 +134,8 @@
       line-height: 1.55;
       word-wrap: break-word;
       white-space: pre-wrap;
+      position: relative;
+padding-bottom: 22px;
     }
 
     .mine .bubble {
@@ -677,13 +679,13 @@
 }
 
 .message-reactions {
+  position: absolute;
+  right: 8px;
+  bottom: -14px;
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
-  margin-top: 10px;
-  padding: 0 6px;
-  position: relative;
-  z-index: 1;
+  z-index: 5;
 }
 
 .message-row.mine .message-reactions {
@@ -945,7 +947,7 @@ reactionsBox.dataset.reactionsFor = item.id;
 
 renderReactionBox(reactionsBox, item.reactions || [], item.id);
 
-content.appendChild(reactionsBox);
+bubble.appendChild(reactionsBox);
 
       const tools = document.createElement("div");
       tools.className = "message-tools";
