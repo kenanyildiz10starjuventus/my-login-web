@@ -231,7 +231,7 @@
     <div class="chat-header">
       <div>
         <h1>Phòng chat 💬</h1>
-        <p>Chat cơ bản giữa các người dùng, tự cập nhật mỗi 2 giây.</p>
+        <p>Chat realtime giữa các người dùng, tin nhắn hiện ngay lập tức.</p>
       </div>
 
       <a href="/welcome.html" class="back-btn">Quay lại Dashboard</a>
@@ -239,7 +239,7 @@
 
     <div class="name-box">
       <label for="usernameInput">Tên của bạn:</label>
-      <input id="usernameInput" placeholder="Ví dụ: Quân" />
+     <input id="usernameInput" placeholder="Tên sẽ tự lấy từ tài khoản đăng nhập" readonly />
     </div>
 
     <div class="messages" id="messages"></div>
@@ -262,26 +262,28 @@
   const messagesBox = document.getElementById("messages");
   const statusText = document.getElementById("statusText");
 
-  const savedUser = localStorage.getItem("currentUser");
-  const savedChatName = localStorage.getItem("chat_username");
+ const savedUser = localStorage.getItem("currentUser");
 
-  if (savedUser) {
-    try {
-      const user = JSON.parse(savedUser);
+if (!savedUser) {
+  alert("Bạn cần đăng nhập trước khi vào phòng chat.");
+  window.location.href = "/";
+} else {
+  try {
+    const user = JSON.parse(savedUser);
 
-      if (user.name) {
-        usernameInput.value = user.name;
-      } else if (user.email) {
-        usernameInput.value = user.email;
-      }
-    } catch (error) {
-      if (savedChatName) {
-        usernameInput.value = savedChatName;
-      }
+    if (user.name) {
+      usernameInput.value = user.name;
+    } else if (user.email) {
+      usernameInput.value = user.email;
+    } else {
+      alert("Không lấy được tên người dùng. Hãy đăng nhập lại.");
+      window.location.href = "/";
     }
-  } else if (savedChatName) {
-    usernameInput.value = savedChatName;
+  } catch (error) {
+    alert("Phiên đăng nhập bị lỗi. Hãy đăng nhập lại.");
+    window.location.href = "/";
   }
+}
 
   function formatTime(dateText) {
     const date = new Date(dateText);
@@ -384,10 +386,7 @@
     }
   });
 
-  usernameInput.addEventListener("change", function () {
-    localStorage.setItem("chat_username", usernameInput.value.trim());
-    loadMessages();
-  });
+ 
 
   loadMessages();
 </script>

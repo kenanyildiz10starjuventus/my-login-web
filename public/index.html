@@ -157,6 +157,7 @@
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("userName", data.user.name);
         localStorage.setItem("userEmail", data.user.email);
+        localStorage.setItem("currentUser", JSON.stringify(data.user));
 
         message.textContent = "Đăng nhập thành công, đang chuyển trang...";
         message.className = "message success";
