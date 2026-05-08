@@ -1,8 +1,12 @@
 const express = require("express");
 const path = require("path");
+const http = require("http");
+const { Server } = require("socket.io");
 const { Pool } = require("pg");
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
@@ -521,8 +525,42 @@ app.post("/api/messages", async function (req, res) {
   }
 });
 
+io.on("connection", function (socket) {
+  console.log("Một người dùng đã kết nối chat:", socket.id);
+
+  socket.on("send_message", async function (data) {
+    try {
+      const username = data.username ? data.username.trim() : "";
+      const message = data.message ? data.message.trim() : "";
+
+      if (!username || !message) {
+        return;
+      }
+
+      if (message.length > 500) {
+        return;
+      }
+
+      const result = await pool.query(
+        "INSERT INTO messages (username, message) VALUES ($1, $2) RETURNING id, username, message, created_at",
+        [username, message]
+      );
+
+      const newMessage = result.rows[0];
+
+      io.emit("receive_message", newMessage);
+    } catch (err) {
+      console.error("Lỗi Socket.IO gửi tin:", err.message);
+    }
+  });
+
+  socket.on("disconnect", function () {
+    console.log("Một người dùng đã rời chat:", socket.id);
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, function () {
+server.listen(PORT, function () {
   console.log("Server đang chạy ở port " + PORT);
 });

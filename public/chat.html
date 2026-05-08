@@ -252,142 +252,144 @@
     </div>
   </div>
 
-  <script>
-    const usernameInput = document.getElementById("usernameInput");
-    const messageInput = document.getElementById("messageInput");
-    const messagesBox = document.getElementById("messages");
-    const statusText = document.getElementById("statusText");
+  <script src="/socket.io/socket.io.js"></script>
 
-    const savedName = localStorage.getItem("chat_username");
+<script>
+  const socket = io();
 
-    if (savedName) {
-      usernameInput.value = savedName;
-    }
+  const usernameInput = document.getElementById("usernameInput");
+  const messageInput = document.getElementById("messageInput");
+  const messagesBox = document.getElementById("messages");
+  const statusText = document.getElementById("statusText");
 
-    let lastMessageCount = 0;
+  const savedUser = localStorage.getItem("currentUser");
+  const savedChatName = localStorage.getItem("chat_username");
 
-    function formatTime(dateText) {
-      const date = new Date(dateText);
+  if (savedUser) {
+    try {
+      const user = JSON.parse(savedUser);
 
-      if (isNaN(date.getTime())) {
-        return "";
+      if (user.name) {
+        usernameInput.value = user.name;
+      } else if (user.email) {
+        usernameInput.value = user.email;
       }
-
-      const h = date.getHours().toString().padStart(2, "0");
-      const m = date.getMinutes().toString().padStart(2, "0");
-
-      return h + ":" + m;
-    }
-
-    function escapeHTML(text) {
-      return text
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    async function loadMessages() {
-      try {
-        const response = await fetch("/api/messages");
-        const data = await response.json();
-
-        if (!data.success) {
-          statusText.textContent = data.message || "Không lấy được tin nhắn.";
-          return;
-        }
-
-        const myName = usernameInput.value.trim();
-        const shouldScroll = data.messages.length !== lastMessageCount;
-
-        messagesBox.innerHTML = "";
-
-        data.messages.forEach(function (item) {
-          const isMine = myName && item.username === myName;
-
-          const row = document.createElement("div");
-          row.className = "message-row " + (isMine ? "mine" : "other");
-
-          const meta = document.createElement("div");
-          meta.className = "message-meta";
-          meta.textContent = item.username + " • " + formatTime(item.created_at);
-
-          const bubble = document.createElement("div");
-          bubble.className = "bubble";
-          bubble.innerHTML = escapeHTML(item.message);
-
-          row.appendChild(meta);
-          row.appendChild(bubble);
-          messagesBox.appendChild(row);
-        });
-
-        if (shouldScroll) {
-          messagesBox.scrollTop = messagesBox.scrollHeight;
-        }
-
-        lastMessageCount = data.messages.length;
-        statusText.textContent = "";
-      } catch (error) {
-        statusText.textContent = "Không kết nối được server chat.";
+    } catch (error) {
+      if (savedChatName) {
+        usernameInput.value = savedChatName;
       }
     }
+  } else if (savedChatName) {
+    usernameInput.value = savedChatName;
+  }
 
-    async function sendMessage() {
-      const username = usernameInput.value.trim();
-      const message = messageInput.value.trim();
+  function formatTime(dateText) {
+    const date = new Date(dateText);
 
-      if (!username) {
-        statusText.textContent = "Bạn cần nhập tên trước.";
+    if (isNaN(date.getTime())) {
+      return "";
+    }
+
+    const h = date.getHours().toString().padStart(2, "0");
+    const m = date.getMinutes().toString().padStart(2, "0");
+
+    return h + ":" + m;
+  }
+
+  function escapeHTML(text) {
+    return text
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function addMessage(item) {
+    const myName = usernameInput.value.trim();
+    const isMine = myName && item.username === myName;
+
+    const row = document.createElement("div");
+    row.className = "message-row " + (isMine ? "mine" : "other");
+
+    const meta = document.createElement("div");
+    meta.className = "message-meta";
+    meta.textContent = item.username + " • " + formatTime(item.created_at);
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.innerHTML = escapeHTML(item.message);
+
+    row.appendChild(meta);
+    row.appendChild(bubble);
+    messagesBox.appendChild(row);
+
+    messagesBox.scrollTop = messagesBox.scrollHeight;
+  }
+
+  async function loadMessages() {
+    try {
+      const response = await fetch("/api/messages");
+      const data = await response.json();
+
+      if (!data.success) {
+        statusText.textContent = data.message || "Không lấy được tin nhắn.";
         return;
       }
 
-      if (!message) {
-        statusText.textContent = "Bạn chưa nhập tin nhắn.";
-        return;
-      }
+      messagesBox.innerHTML = "";
 
-      localStorage.setItem("chat_username", username);
+      data.messages.forEach(function (item) {
+        addMessage(item);
+      });
 
-      try {
-        const response = await fetch("/api/messages", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            username: username,
-            message: message
-          })
-        });
+      statusText.textContent = "";
+    } catch (error) {
+      statusText.textContent = "Không kết nối được server chat.";
+    }
+  }
 
-        const data = await response.json();
+  function sendMessage() {
+    const username = usernameInput.value.trim();
+    const message = messageInput.value.trim();
 
-        if (!data.success) {
-          statusText.textContent = data.message || "Gửi tin nhắn thất bại.";
-          return;
-        }
-
-        messageInput.value = "";
-        await loadMessages();
-      } catch (error) {
-        statusText.textContent = "Không gửi được tin nhắn.";
-      }
+    if (!username) {
+      statusText.textContent = "Bạn cần nhập tên trước.";
+      return;
     }
 
-    messageInput.addEventListener("keydown", function (event) {
-      if (event.key === "Enter") {
-        sendMessage();
-      }
+    if (!message) {
+      statusText.textContent = "Bạn chưa nhập tin nhắn.";
+      return;
+    }
+
+    localStorage.setItem("chat_username", username);
+
+    socket.emit("send_message", {
+      username: username,
+      message: message
     });
 
-    usernameInput.addEventListener("change", function () {
-      localStorage.setItem("chat_username", usernameInput.value.trim());
-      loadMessages();
-    });
+    messageInput.value = "";
+    statusText.textContent = "";
+  }
 
+  socket.on("receive_message", function (message) {
+    addMessage(message);
+  });
+
+  messageInput.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      sendMessage();
+    }
+  });
+
+  usernameInput.addEventListener("change", function () {
+    localStorage.setItem("chat_username", usernameInput.value.trim());
     loadMessages();
-    setInterval(loadMessages, 2000);
-  </script>
+  });
+
+  loadMessages();
+</script>
 </body>
 </html>
