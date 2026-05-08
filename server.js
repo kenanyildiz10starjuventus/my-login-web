@@ -584,6 +584,14 @@ const result = await pool.query(
     }
   });
 
+socket.on("typing", function (username) {
+  socket.broadcast.emit("user_typing", username);
+});
+
+socket.on("stop_typing", function () {
+  socket.broadcast.emit("user_stop_typing");
+});
+
   socket.on("disconnect", function () {
     console.log("Một người dùng đã rời chat:", socket.id);
   });

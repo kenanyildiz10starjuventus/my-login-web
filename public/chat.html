@@ -402,6 +402,12 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
+#typingText {
+  margin-top: 4px;
+  color: #ffd6f1;
+  font-style: italic;
+  min-height: 18px;
+}
   </style>
 </head>
 
@@ -411,6 +417,7 @@
       <div>
         <h1>Phòng chat 💬</h1>
         <p>Chat realtime giữa các người dùng, tin nhắn hiện ngay lập tức.</p>
+<p id="typingText"></p>
       </div>
 
       <a href="/welcome.html" class="back-btn">Quay lại Dashboard</a>
@@ -456,6 +463,8 @@
   const messageInput = document.getElementById("messageInput");
   const messagesBox = document.getElementById("messages");
   const statusText = document.getElementById("statusText");
+  const typingText = document.getElementById("typingText");
+let typingTimer = null;
   const replyBox = document.getElementById("replyBox");
 const replyBoxText = document.getElementById("replyBoxText");
 
@@ -727,6 +736,7 @@ function addEmoji(emoji) {
   replyToMessage: replyingTo ? replyingTo.message : null
 });
 
+socket.emit("stop_typing");
 cancelReply();
 
     messageInput.value = "";
@@ -836,6 +846,15 @@ async function deleteMessage(messageId) {
   socket.on("receive_message", function (message) {
     addMessage(message);
   });
+  socket.on("user_typing", function (username) {
+  if (username && username !== usernameInput.value.trim()) {
+    typingText.textContent = username + " đang nhập...";
+  }
+});
+
+socket.on("user_stop_typing", function () {
+  typingText.textContent = "";
+});
 
  socket.on("delete_message", function (messageId) {
   const messageElement = document.querySelector('[data-message-id="' + messageId + '"]');
@@ -850,10 +869,19 @@ socket.on("edit_message", function (updatedMessage) {
 });
 
   messageInput.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-      sendMessage();
-    }
-  });
+  if (event.key === "Enter") {
+    sendMessage();
+    return;
+  }
+
+  socket.emit("typing", usernameInput.value.trim());
+
+  clearTimeout(typingTimer);
+
+  typingTimer = setTimeout(function () {
+    socket.emit("stop_typing");
+  }, 1000);
+});
 
  
 
