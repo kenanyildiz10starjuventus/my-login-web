@@ -689,6 +689,13 @@
   border: 1px solid rgba(255,255,255,0.14);
   color: white;
   font-size: 12px;
+  cursor: pointer;
+  transition: 0.18s;
+}
+
+.reaction-count:hover {
+  background: rgba(255,255,255,0.22);
+  transform: translateY(-1px);
 }
 
   </style>
@@ -925,7 +932,7 @@ let allMessages = [];
 reactionsBox.className = "message-reactions";
 reactionsBox.dataset.reactionsFor = item.id;
 
-renderReactionBox(reactionsBox, item.reactions || []);
+renderReactionBox(reactionsBox, item.reactions || [], item.id);
 
 content.appendChild(reactionsBox);
 
@@ -1045,7 +1052,7 @@ statusText.textContent = "";
   messagesBox.scrollTop = messagesBox.scrollHeight;
 }
 
- function renderReactionBox(reactionsBox, reactions) {
+ function renderReactionBox(reactionsBox, reactions, messageId) {
   reactionsBox.innerHTML = "";
 
   if (!reactions || reactions.length === 0) {
@@ -1053,9 +1060,15 @@ statusText.textContent = "";
   }
 
   reactions.forEach(function (reaction) {
-    const item = document.createElement("span");
+    const item = document.createElement("button");
     item.className = "reaction-count";
+    item.type = "button";
     item.textContent = reaction.emoji + " " + reaction.count;
+
+    item.onclick = function (event) {
+      event.stopPropagation();
+      reactToMessage(messageId, reaction.emoji);
+    };
 
     reactionsBox.appendChild(item);
   });
@@ -1386,7 +1399,7 @@ socket.on("update_message_reactions", function (data) {
   );
 
   if (reactionsBox) {
-    renderReactionBox(reactionsBox, data.reactions);
+    renderReactionBox(reactionsBox, data.reactions, data.messageId);
   }
 });
 
