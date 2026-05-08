@@ -598,6 +598,62 @@ app.delete("/api/messages/:id", async function (req, res) {
   }
 });
 
+app.put("/api/messages/:id", async function (req, res) {
+  try {
+    const messageId = req.params.id;
+    const username = req.body.username ? req.body.username.trim() : "";
+    const message = req.body.message ? req.body.message.trim() : "";
+
+    if (!messageId || !username || !message) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu ID, tên người dùng hoặc nội dung tin nhắn."
+      });
+    }
+
+    if (message.length > 500) {
+      return res.status(400).json({
+        success: false,
+        message: "Tin nhắn quá dài."
+      });
+    }
+
+    const result = await pool.query(
+      `
+      UPDATE messages
+      SET message = $1
+      WHERE id = $2 AND username = $3
+      RETURNING id, username, message, created_at
+      `,
+      [message, messageId, username]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: "Bạn chỉ được sửa tin nhắn của chính mình."
+      });
+    }
+
+    const updatedMessage = result.rows[0];
+
+    io.emit("edit_message", updatedMessage);
+
+    res.json({
+      success: true,
+      message: "Đã sửa tin nhắn.",
+      updatedMessage: updatedMessage
+    });
+  } catch (err) {
+    console.error("Lỗi sửa tin nhắn:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi sửa tin nhắn."
+    });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, function () {

@@ -277,6 +277,30 @@
 .delete-message-btn:hover {
   background: rgba(255, 80, 120, 0.32);
 }
+
+.edit-message-btn {
+  border: none;
+  background: rgba(0, 212, 255, 0.18);
+  color: #d6f8ff;
+  border: 1px solid rgba(0, 212, 255, 0.28);
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-right: 6px;
+}
+
+.edit-message-btn:hover {
+  background: rgba(0, 212, 255, 0.32);
+}
+
+.edited-label {
+  font-size: 11px;
+  color: #b7c3e8;
+  margin-top: 4px;
+  opacity: 0.8;
+}
   </style>
 </head>
 
@@ -398,21 +422,28 @@ function addMessage(item) {
   content.appendChild(meta);
   content.appendChild(bubble);
 
-  if (isMine) {
-    const tools = document.createElement("div");
-    tools.className = "message-tools";
+ if (isMine) {
+  const tools = document.createElement("div");
+  tools.className = "message-tools";
 
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "delete-message-btn";
-    deleteBtn.textContent = "Xóa";
-    deleteBtn.onclick = function () {
-      deleteMessage(item.id);
-    };
+  const editBtn = document.createElement("button");
+  editBtn.className = "edit-message-btn";
+  editBtn.textContent = "Sửa";
+  editBtn.onclick = function () {
+    editMessage(item.id, item.message);
+  };
 
-    tools.appendChild(deleteBtn);
-    content.appendChild(tools);
-  }
+  const deleteBtn = document.createElement("button");
+  deleteBtn.className = "delete-message-btn";
+  deleteBtn.textContent = "Xóa";
+  deleteBtn.onclick = function () {
+    deleteMessage(item.id);
+  };
 
+  tools.appendChild(editBtn);
+  tools.appendChild(deleteBtn);
+  content.appendChild(tools);
+}
   line.appendChild(avatar);
   line.appendChild(content);
   row.appendChild(line);
@@ -467,6 +498,77 @@ function addMessage(item) {
     messageInput.value = "";
     statusText.textContent = "";
   }
+async function editMessage(messageId, oldMessage) {
+  const newMessage = prompt("Nhập nội dung mới:", oldMessage);
+
+  if (newMessage === null) {
+    return;
+  }
+
+  const trimmedMessage = newMessage.trim();
+
+  if (!trimmedMessage) {
+    statusText.textContent = "Tin nhắn không được để trống.";
+    return;
+  }
+
+  if (trimmedMessage.length > 500) {
+    statusText.textContent = "Tin nhắn quá dài.";
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/messages/" + messageId, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        username: usernameInput.value.trim(),
+        message: trimmedMessage
+      })
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      statusText.textContent = data.message || "Sửa tin nhắn thất bại.";
+      return;
+    }
+
+    updateMessageOnScreen(data.updatedMessage);
+  } catch (error) {
+    statusText.textContent = "Không sửa được tin nhắn.";
+  }
+}
+
+function updateMessageOnScreen(item) {
+  const messageElement = document.querySelector('[data-message-id="' + item.id + '"]');
+
+  if (!messageElement) {
+    return;
+  }
+
+  const bubble = messageElement.querySelector(".bubble");
+
+  if (bubble) {
+    bubble.innerHTML = escapeHTML(item.message);
+  }
+
+  let editedLabel = messageElement.querySelector(".edited-label");
+
+  if (!editedLabel) {
+    editedLabel = document.createElement("div");
+    editedLabel.className = "edited-label";
+    editedLabel.textContent = "Đã chỉnh sửa";
+
+    const messageContent = messageElement.querySelector(".message-content");
+
+    if (messageContent) {
+      messageContent.appendChild(editedLabel);
+    }
+  }
+}
 
 async function deleteMessage(messageId) {
   const confirmDelete = confirm("Bạn có chắc muốn xóa tin nhắn này không?");
@@ -507,6 +609,10 @@ async function deleteMessage(messageId) {
   if (messageElement) {
     messageElement.remove();
   }
+});
+
+socket.on("edit_message", function (updatedMessage) {
+  updateMessageOnScreen(updatedMessage);
 });
 
   messageInput.addEventListener("keydown", function (event) {
