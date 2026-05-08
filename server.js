@@ -559,6 +559,45 @@ io.on("connection", function (socket) {
   });
 });
 
+app.delete("/api/messages/:id", async function (req, res) {
+  try {
+    const messageId = req.params.id;
+
+    if (!messageId) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu ID tin nhắn."
+      });
+    }
+
+    const result = await pool.query(
+      "DELETE FROM messages WHERE id = $1 RETURNING id",
+      [messageId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy tin nhắn."
+      });
+    }
+
+    io.emit("delete_message", Number(messageId));
+
+    res.json({
+      success: true,
+      message: "Đã xóa tin nhắn."
+    });
+  } catch (err) {
+    console.error("Lỗi xóa tin nhắn:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi xóa tin nhắn."
+    });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, function () {

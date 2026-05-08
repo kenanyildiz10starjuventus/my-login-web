@@ -7,6 +7,8 @@
   <title>Phòng chat</title>
 
   <style>
+
+    
     * {
       box-sizing: border-box;
       font-family: Arial, sans-serif;
@@ -223,6 +225,58 @@
         padding: 14px;
       }
     }
+
+    .message-line {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.message-row.mine .message-line {
+  flex-direction: row-reverse;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-weight: 900;
+  color: white;
+  background: linear-gradient(135deg, #7c3cff, #00d4ff);
+  box-shadow: 0 8px 24px rgba(0, 212, 255, 0.25);
+}
+
+.message-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.message-row.mine .message-content {
+  align-items: flex-end;
+}
+
+.message-tools {
+  margin-top: 5px;
+}
+
+.delete-message-btn {
+  border: none;
+  background: rgba(255, 80, 120, 0.18);
+  color: #ffd6e1;
+  border: 1px solid rgba(255, 120, 160, 0.25);
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.delete-message-btn:hover {
+  background: rgba(255, 80, 120, 0.32);
+}
   </style>
 </head>
 
@@ -307,27 +361,65 @@ if (!savedUser) {
       .replaceAll("'", "&#039;");
   }
 
-  function addMessage(item) {
-    const myName = usernameInput.value.trim();
-    const isMine = myName && item.username === myName;
-
-    const row = document.createElement("div");
-    row.className = "message-row " + (isMine ? "mine" : "other");
-
-    const meta = document.createElement("div");
-    meta.className = "message-meta";
-    meta.textContent = item.username + " • " + formatTime(item.created_at);
-
-    const bubble = document.createElement("div");
-    bubble.className = "bubble";
-    bubble.innerHTML = escapeHTML(item.message);
-
-    row.appendChild(meta);
-    row.appendChild(bubble);
-    messagesBox.appendChild(row);
-
-    messagesBox.scrollTop = messagesBox.scrollHeight;
+ function getAvatarLetter(name) {
+  if (!name || name.trim() === "") {
+    return "?";
   }
+
+  return name.trim().charAt(0).toUpperCase();
+}
+
+function addMessage(item) {
+  const myName = usernameInput.value.trim();
+  const isMine = myName && item.username === myName;
+
+  const row = document.createElement("div");
+  row.className = "message-row " + (isMine ? "mine" : "other");
+  row.dataset.messageId = item.id;
+
+  const line = document.createElement("div");
+  line.className = "message-line";
+
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  avatar.textContent = getAvatarLetter(item.username);
+
+  const content = document.createElement("div");
+  content.className = "message-content";
+
+  const meta = document.createElement("div");
+  meta.className = "message-meta";
+  meta.textContent = item.username + " • " + formatTime(item.created_at);
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.innerHTML = escapeHTML(item.message);
+
+  content.appendChild(meta);
+  content.appendChild(bubble);
+
+  if (isMine) {
+    const tools = document.createElement("div");
+    tools.className = "message-tools";
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "delete-message-btn";
+    deleteBtn.textContent = "Xóa";
+    deleteBtn.onclick = function () {
+      deleteMessage(item.id);
+    };
+
+    tools.appendChild(deleteBtn);
+    content.appendChild(tools);
+  }
+
+  line.appendChild(avatar);
+  line.appendChild(content);
+  row.appendChild(line);
+
+  messagesBox.appendChild(row);
+  messagesBox.scrollTop = messagesBox.scrollHeight;
+}
 
   async function loadMessages() {
     try {
@@ -376,9 +468,46 @@ if (!savedUser) {
     statusText.textContent = "";
   }
 
+async function deleteMessage(messageId) {
+  const confirmDelete = confirm("Bạn có chắc muốn xóa tin nhắn này không?");
+
+  if (!confirmDelete) {
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/messages/" + messageId, {
+      method: "DELETE"
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      statusText.textContent = data.message || "Xóa tin nhắn thất bại.";
+      return;
+    }
+
+    const messageElement = document.querySelector('[data-message-id="' + messageId + '"]');
+
+    if (messageElement) {
+      messageElement.remove();
+    }
+  } catch (error) {
+    statusText.textContent = "Không xóa được tin nhắn.";
+  }
+}
+
   socket.on("receive_message", function (message) {
     addMessage(message);
   });
+
+ socket.on("delete_message", function (messageId) {
+  const messageElement = document.querySelector('[data-message-id="' + messageId + '"]');
+
+  if (messageElement) {
+    messageElement.remove();
+  }
+});
 
   messageInput.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
