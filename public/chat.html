@@ -520,6 +520,49 @@
   min-height: 20px;
   font-size: 14px;
 }
+
+.search-box {
+  padding: 12px 18px;
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+}
+
+.search-box input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.08);
+  color: white;
+  outline: none;
+  font-size: 14px;
+}
+
+.search-box input::placeholder {
+  color: rgba(255,255,255,0.5);
+}
+
+.search-box button {
+  border: none;
+  padding: 0 14px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.12);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.search-box button:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.search-highlight .bubble {
+  outline: 2px solid rgba(0, 212, 255, 0.65);
+  box-shadow: 0 0 22px rgba(0, 212, 255, 0.25);
+}
+
   </style>
 </head>
 
@@ -540,7 +583,12 @@
       <input id="usernameInput" placeholder="Tên sẽ tự lấy từ tài khoản đăng nhập" readonly />
     </div>
 
-    <div class="messages" id="messages"></div>
+    <div class="search-box">
+  <input id="searchInput" placeholder="Tìm tin nhắn..." />
+  <button type="button" onclick="clearSearch()">Xóa</button>
+</div>
+
+<div class="messages" id="messages"></div>
 
    <p id="typingText" class="typing-bottom"></p>
 <div class="status" id="statusText"></div>
@@ -584,6 +632,9 @@
     const replyBoxText = document.getElementById("replyBoxText");
     const emojiToggleBtn = document.getElementById("emojiToggleBtn");
     const emojiPicker = document.getElementById("emojiPicker");
+    const searchInput = document.getElementById("searchInput");
+
+let allMessages = [];
 
     let typingTimer = null;
     let replyingTo = null;
@@ -783,30 +834,96 @@
           return;
         }
 
-        messagesBox.innerHTML = "";
+        allMessages = data.messages;
+renderMessages(allMessages);
 
-        let lastDateKey = "";
-
-        data.messages.forEach(function (item) {
-          const currentDateKey = getDateKey(item.created_at);
-
-          if (currentDateKey !== lastDateKey) {
-            const separator = document.createElement("div");
-            separator.className = "date-separator";
-            separator.textContent = formatDateSeparator(item.created_at);
-
-            messagesBox.appendChild(separator);
-            lastDateKey = currentDateKey;
-          }
-
-          addMessage(item);
-        });
-
-        statusText.textContent = "";
+statusText.textContent = "";
       } catch (error) {
         statusText.textContent = "Không kết nối được server chat.";
       }
     }
+
+
+
+    function renderMessages(messages) {
+  messagesBox.innerHTML = "";
+
+  if (!messages || messages.length === 0) {
+    messagesBox.innerHTML = "";
+    return;
+  }
+
+  let lastDateKey = "";
+
+  messages.forEach(function (item) {
+    const currentDateKey = getDateKey(item.created_at);
+
+    if (currentDateKey !== lastDateKey) {
+      const separator = document.createElement("div");
+      separator.className = "date-separator";
+      separator.textContent = formatDateSeparator(item.created_at);
+
+      messagesBox.appendChild(separator);
+      lastDateKey = currentDateKey;
+    }
+
+    addMessage(item);
+  });
+
+  messagesBox.scrollTop = messagesBox.scrollHeight;
+}
+
+function normalizeSearchText(text) {
+  return String(text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d");
+}
+
+function applySearch() {
+  const keyword = normalizeSearchText(searchInput.value.trim());
+
+  if (!keyword) {
+    renderMessages(allMessages);
+    statusText.textContent = "";
+    return;
+  }
+
+  const filteredMessages = allMessages.filter(function (item) {
+    const username = normalizeSearchText(item.username);
+    const message = normalizeSearchText(item.message);
+    const replyUsername = normalizeSearchText(item.reply_to_username);
+    const replyMessage = normalizeSearchText(item.reply_to_message);
+
+    return (
+      username.includes(keyword) ||
+      message.includes(keyword) ||
+      replyUsername.includes(keyword) ||
+      replyMessage.includes(keyword)
+    );
+  });
+
+  renderMessages(filteredMessages);
+
+  const rows = document.querySelectorAll(".message-row");
+
+  rows.forEach(function (row) {
+    row.classList.add("search-highlight");
+  });
+
+  if (filteredMessages.length === 0) {
+    statusText.textContent = "Không tìm thấy tin nhắn phù hợp.";
+  } else {
+    statusText.textContent = "Tìm thấy " + filteredMessages.length + " tin nhắn.";
+  }
+}
+
+function clearSearch() {
+  searchInput.value = "";
+  statusText.textContent = "";
+  renderMessages(allMessages);
+}
 
     function startReply(item) {
       replyingTo = {
@@ -982,9 +1099,15 @@
       }
     }
 
-    socket.on("receive_message", function (message) {
-      addMessage(message);
-    });
+   socket.on("receive_message", function (message) {
+  allMessages.push(message);
+
+  if (searchInput.value.trim()) {
+    applySearch();
+  } else {
+    renderMessages(allMessages);
+  }
+});
 
     socket.on("user_typing", function (username) {
       if (username && username !== usernameInput.value.trim()) {
@@ -996,17 +1119,33 @@
       typingText.textContent = "";
     });
 
-    socket.on("delete_message", function (messageId) {
-      const messageElement = document.querySelector('[data-message-id="' + messageId + '"]');
+   socket.on("delete_message", function (messageId) {
+  allMessages = allMessages.filter(function (item) {
+    return Number(item.id) !== Number(messageId);
+  });
 
-      if (messageElement) {
-        messageElement.remove();
-      }
-    });
+  if (searchInput.value.trim()) {
+    applySearch();
+  } else {
+    renderMessages(allMessages);
+  }
+});
 
-    socket.on("edit_message", function (updatedMessage) {
-      updateMessageOnScreen(updatedMessage);
-    });
+   socket.on("edit_message", function (updatedMessage) {
+  allMessages = allMessages.map(function (item) {
+    if (Number(item.id) === Number(updatedMessage.id)) {
+      return updatedMessage;
+    }
+
+    return item;
+  });
+
+  if (searchInput.value.trim()) {
+    applySearch();
+  } else {
+    renderMessages(allMessages);
+  }
+});
 
     messageInput.addEventListener("keydown", function (event) {
       if (event.key === "Enter") {
@@ -1051,6 +1190,8 @@
         target.classList.remove("jump-highlight");
       }, 1300);
     }
+
+  searchInput.addEventListener("input", applySearch);
 
     loadMessages();
   </script>
