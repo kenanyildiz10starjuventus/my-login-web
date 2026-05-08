@@ -618,27 +618,36 @@
   background: rgba(255,255,255,0.22);
 }
 
+.reaction-wrapper {
+  position: relative;
+  display: inline-flex;
+  margin-right: 6px;
+  padding-top: 42px;
+  margin-top: -42px;
+}
+
 .reaction-panel {
   display: inline-flex;
   position: absolute;
-  bottom: 36px;
+  bottom: 28px;
   left: 0;
-  gap: 5px;
-  padding: 7px;
+  gap: 6px;
+  padding: 8px 10px;
   border-radius: 999px;
-  background: rgba(30, 31, 50, 0.96);
+  background: rgba(30, 31, 50, 0.98);
   border: 1px solid rgba(255,255,255,0.12);
   box-shadow: 0 14px 35px rgba(0,0,0,0.35);
-  z-index: 20;
+  z-index: 50;
   backdrop-filter: blur(14px);
 
   opacity: 0;
   pointer-events: none;
-  transform: translateY(6px) scale(0.96);
-  transition: 0.18s ease;
+  transform: translateY(4px) scale(0.98);
+  transition: opacity 0.12s ease, transform 0.12s ease;
 }
 
-.reaction-wrapper:hover .reaction-panel {
+.reaction-wrapper:hover .reaction-panel,
+.reaction-panel:hover {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0) scale(1);
@@ -651,13 +660,13 @@
 
 .reaction-btn {
   border: none;
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255,255,255,0.16);
   cursor: pointer;
-  font-size: 15px;
+  font-size: 19px;
   transition: 0.18s;
   padding: 0;
 }
