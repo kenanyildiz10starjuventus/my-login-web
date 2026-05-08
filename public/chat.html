@@ -724,6 +724,41 @@
   transform: translateY(-1px);
 }
 
+.anniversary-box {
+  margin: 14px 22px 0;
+  padding: 14px 18px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 120, 200, 0.22), transparent 35%),
+    linear-gradient(135deg, rgba(124, 60, 255, 0.18), rgba(0, 212, 255, 0.12));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(18px);
+}
+
+.anniversary-title {
+  font-size: 13px;
+  color: #ffd6f1;
+  font-weight: 800;
+  margin-bottom: 5px;
+  letter-spacing: 0.2px;
+}
+
+.anniversary-text {
+  font-size: 16px;
+  color: #ffffff;
+  font-weight: 900;
+  line-height: 1.45;
+}
+
+.anniversary-sub {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: #c7d2ff;
+  font-weight: 600;
+}
+
   </style>
 </head>
 
@@ -748,6 +783,11 @@
     <div class="search-box">
   <input id="searchInput" placeholder="Tìm tin nhắn..." />
   <button type="button" onclick="clearSearch()">Xóa</button>
+</div>
+
+<div class="anniversary-box" id="anniversaryBox">
+  <div class="anniversary-title">💗 Kỷ niệm của chúng mình</div>
+  <div class="anniversary-text" id="anniversaryText"></div>
 </div>
 
 <div class="messages" id="messages"></div>
@@ -803,6 +843,7 @@
     const searchInput = document.getElementById("searchInput");
     const searchToggleBtn = document.getElementById("searchToggleBtn");
 const searchBox = document.querySelector(".search-box");
+const anniversaryText = document.getElementById("anniversaryText");
 
 let allMessages = [];
 
@@ -905,6 +946,45 @@ let allMessages = [];
 
       return name.trim().charAt(0).toUpperCase();
     }
+
+   function updateAnniversary() {
+  const startDateText = "2024-03-08"; // ĐỔI NGÀY NÀY thành ngày bắt đầu yêu: yyyy-mm-dd
+
+  const startDate = new Date(startDateText + "T00:00:00");
+  const today = new Date();
+
+  startDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  const oneDay = 24 * 60 * 60 * 1000;
+  const diffDays = Math.floor((today - startDate) / oneDay) + 1;
+
+  if (diffDays > 0) {
+    anniversaryText.innerHTML =
+      "Yêu nhau được " +
+      diffDays +
+      " ngày 💗" +
+      '<span class="anniversary-sub">Từ ngày ' +
+      formatVietnameseDate(startDate) +
+      " đến hôm nay.</span>";
+  } else if (diffDays === 0) {
+    anniversaryText.innerHTML =
+      "Hôm nay là ngày bắt đầu của chúng mình 💗";
+  } else {
+    anniversaryText.innerHTML =
+      "Còn " +
+      Math.abs(diffDays) +
+      " ngày nữa là đến ngày kỷ niệm 💗";
+  }
+}
+
+function formatVietnameseDate(date) {
+  const d = String(date.getDate()).padStart(2, "0");
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const y = date.getFullYear();
+
+  return d + "/" + m + "/" + y;
+}
 
     function addMessage(item) {
       const myName = usernameInput.value.trim();
@@ -1505,6 +1585,8 @@ if (messageRow) {
   }
 });
 
+
+  updateAnniversary();
     loadMessages();
   </script>
 </body>
