@@ -234,8 +234,18 @@
     }
 
     .message-tools {
-      margin-top: 5px;
-    }
+  margin-top: 5px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-3px);
+  transition: 0.18s ease;
+}
+
+.message-row:hover .message-tools {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
 
     .delete-message-btn {
       border: none;
