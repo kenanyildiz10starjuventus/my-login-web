@@ -523,10 +523,14 @@
 
 .search-box {
   padding: 12px 18px;
-  display: flex;
+  display: none;
   gap: 10px;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   background: rgba(255,255,255,0.04);
+}
+
+.search-box.show {
+  display: flex;
 }
 
 .search-box input {
@@ -563,20 +567,47 @@
   box-shadow: 0 0 22px rgba(0, 212, 255, 0.25);
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-toggle-btn {
+  border: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.16);
+  color: white;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.search-toggle-btn:hover,
+.search-toggle-btn.active {
+  background: rgba(0, 212, 255, 0.22);
+  border-color: rgba(0, 212, 255, 0.35);
+}
+
   </style>
 </head>
 
 <body>
   <div class="chat-page">
-    <div class="chat-header">
-      <div>
-        <h1>Phòng chat 💬</h1>
-        
-        
-      </div>
+   <div class="chat-header">
+  <div>
+    <h1>Phòng chat 💬</h1>
+  </div>
 
-      <a href="/welcome.html" class="back-btn">Trang chủ</a>
-    </div>
+  <div class="header-actions">
+    <button type="button" id="searchToggleBtn" class="search-toggle-btn">🔍</button>
+    <a href="/welcome.html" class="back-btn">Trang chủ</a>
+  </div>
+</div>
 
     <div class="name-box">
       <label for="usernameInput">Tên của bạn:</label>
@@ -633,6 +664,8 @@
     const emojiToggleBtn = document.getElementById("emojiToggleBtn");
     const emojiPicker = document.getElementById("emojiPicker");
     const searchInput = document.getElementById("searchInput");
+    const searchToggleBtn = document.getElementById("searchToggleBtn");
+const searchBox = document.querySelector(".search-box");
 
 let allMessages = [];
 
@@ -1192,6 +1225,16 @@ function clearSearch() {
     }
 
   searchInput.addEventListener("input", applySearch);
+  searchToggleBtn.addEventListener("click", function () {
+  searchBox.classList.toggle("show");
+  searchToggleBtn.classList.toggle("active");
+
+  if (searchBox.classList.contains("show")) {
+    searchInput.focus();
+  } else {
+    clearSearch();
+  }
+});
 
     loadMessages();
   </script>
