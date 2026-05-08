@@ -234,12 +234,16 @@
       align-items: flex-end;
     }
 
-    .message-tools {
+   .message-tools {
   margin-top: 5px;
   opacity: 0;
   pointer-events: none;
   transform: translateY(-3px);
   transition: 0.18s ease;
+}
+
+.message-row.has-reactions .message-tools {
+  margin-top: 18px;
 }
 
 .message-row:hover .message-tools {
@@ -625,7 +629,7 @@
 .reaction-panel {
   display: inline-flex;
   position: absolute;
-  bottom: 44px;
+  bottom: 32px;
   left: 0;
   gap: 6px;
   padding: 8px 10px;
@@ -901,8 +905,13 @@ let allMessages = [];
       const isMine = myName && item.username === myName;
 
       const row = document.createElement("div");
-      row.className = "message-row " + (isMine ? "mine" : "other");
-      row.dataset.messageId = item.id;
+row.className = "message-row " + (isMine ? "mine" : "other");
+
+if (item.reactions && item.reactions.length > 0) {
+  row.classList.add("has-reactions");
+}
+
+row.dataset.messageId = item.id;
 
       const line = document.createElement("div");
       line.className = "message-line";
@@ -1415,8 +1424,20 @@ socket.on("update_message_reactions", function (data) {
   );
 
   if (reactionsBox) {
-    renderReactionBox(reactionsBox, data.reactions, data.messageId);
+  renderReactionBox(reactionsBox, data.reactions, data.messageId);
+}
+
+const messageRow = document.querySelector(
+  '[data-message-id="' + data.messageId + '"]'
+);
+
+if (messageRow) {
+  if (data.reactions && data.reactions.length > 0) {
+    messageRow.classList.add("has-reactions");
+  } else {
+    messageRow.classList.remove("has-reactions");
   }
+}
 });
 
     messageInput.addEventListener("keydown", function (event) {

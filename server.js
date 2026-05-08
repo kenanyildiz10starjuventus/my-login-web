@@ -553,7 +553,7 @@ app.post("/api/messages", async function (req, res) {
       });
     }
 
-    if (message.length > 500) {
+    if (message.length > 5000) {
       return res.status(400).json({
         success: false,
         message: "Tin nhắn quá dài."
@@ -644,7 +644,7 @@ app.put("/api/messages/:id", async function (req, res) {
       });
     }
 
-    if (message.length > 500) {
+    if (message.length > 5000) {
       return res.status(400).json({
         success: false,
         message: "Tin nhắn quá dài."
