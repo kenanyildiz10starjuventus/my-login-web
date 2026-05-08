@@ -946,7 +946,7 @@ io.on("connection", function (socket) {
         return;
       }
 
-      if (message.length > 500) {
+      if (message.length > 5000) {
         return;
       }
 
@@ -1001,7 +1001,7 @@ io.on("connection", function (socket) {
         return;
       }
 
-      if (message.length > 500) {
+      if (message.length > 5000) {
         return;
       }
 
