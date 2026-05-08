@@ -151,6 +151,7 @@
       if (data.success) {
         localStorage.setItem("userName", data.user.name);
         localStorage.setItem("userEmail", data.user.email);
+        localStorage.setItem("currentUser", JSON.stringify(data.user));
 
         message.textContent = "Cập nhật thành công, đang quay lại Dashboard...";
         message.className = "message success";
