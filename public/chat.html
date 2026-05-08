@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Phòng chat</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(124, 60, 255, 0.45), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(0, 212, 255, 0.28), transparent 34%),
+        #070816;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .chat-page {
+      width: min(950px, 100%);
+      height: min(760px, 92vh);
+      border-radius: 30px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.09);
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(22px);
+      box-shadow: 0 30px 100px rgba(0,0,0,0.45);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-header {
+      padding: 22px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .chat-header h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+    }
+
+    .chat-header p {
+      margin: 0;
+      color: #c7d2ff;
+      font-size: 14px;
+    }
+
+    .back-btn {
+      text-decoration: none;
+      color: white;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.16);
+      padding: 12px 16px;
+      border-radius: 999px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .name-box {
+      padding: 14px 24px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .name-box label {
+      font-weight: bold;
+      color: #dce6ff;
+      white-space: nowrap;
+    }
+
+    .name-box input {
+      flex: 1;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.08);
+      color: white;
+      outline: none;
+      font-size: 15px;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message-row {
+      max-width: 75%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message-row.mine {
+      align-self: flex-end;
+      text-align: right;
+    }
+
+    .message-row.other {
+      align-self: flex-start;
+      text-align: left;
+    }
+
+    .message-meta {
+      font-size: 12px;
+      color: #b7c3e8;
+      margin-bottom: 5px;
+      padding: 0 6px;
+    }
+
+    .bubble {
+      padding: 13px 15px;
+      border-radius: 18px;
+      line-height: 1.55;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    .mine .bubble {
+      background: linear-gradient(135deg, #7c3cff, #00d4ff);
+      color: white;
+      border-bottom-right-radius: 6px;
+    }
+
+    .other .bubble {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #f5f7ff;
+      border-bottom-left-radius: 6px;
+    }
+
+    .status {
+      padding: 0 24px 14px;
+      color: #ffd6e8;
+      font-size: 14px;
+      min-height: 22px;
+    }
+
+    .chat-input {
+      padding: 18px;
+      display: flex;
+      gap: 12px;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 15px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.08);
+      color: white;
+      outline: none;
+      font-size: 16px;
+    }
+
+    .chat-input button {
+      border: none;
+      padding: 0 24px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #7c3cff, #00d4ff);
+      color: white;
+      font-weight: 900;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 14px 35px rgba(0,212,255,0.22);
+    }
+
+    input::placeholder {
+      color: rgba(255,255,255,0.5);
+    }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 0;
+      }
+
+      .chat-page {
+        height: 100vh;
+        border-radius: 0;
+      }
+
+      .chat-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .name-box {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .message-row {
+        max-width: 88%;
+      }
+
+      .chat-input {
+        flex-direction: column;
+      }
+
+      .chat-input button {
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="chat-page">
+    <div class="chat-header">
+      <div>
+        <h1>Phòng chat 💬</h1>
+        <p>Chat cơ bản giữa các người dùng, tự cập nhật mỗi 2 giây.</p>
+      </div>
+
+      <a href="/welcome.html" class="back-btn">Quay lại Dashboard</a>
+    </div>
+
+    <div class="name-box">
+      <label for="usernameInput">Tên của bạn:</label>
+      <input id="usernameInput" placeholder="Ví dụ: Quân" />
+    </div>
+
+    <div class="messages" id="messages"></div>
+
+    <div class="status" id="statusText"></div>
+
+    <div class="chat-input">
+      <input id="messageInput" placeholder="Nhập tin nhắn..." />
+      <button onclick="sendMessage()">Gửi</button>
+    </div>
+  </div>
+
+  <script>
+    const usernameInput = document.getElementById("usernameInput");
+    const messageInput = document.getElementById("messageInput");
+    const messagesBox = document.getElementById("messages");
+    const statusText = document.getElementById("statusText");
+
+    const savedName = localStorage.getItem("chat_username");
+
+    if (savedName) {
+      usernameInput.value = savedName;
+    }
+
+    let lastMessageCount = 0;
+
+    function formatTime(dateText) {
+      const date = new Date(dateText);
+
+      if (isNaN(date.getTime())) {
+        return "";
+      }
+
+      const h = date.getHours().toString().padStart(2, "0");
+      const m = date.getMinutes().toString().padStart(2, "0");
+
+      return h + ":" + m;
+    }
+
+    function escapeHTML(text) {
+      return text
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    async function loadMessages() {
+      try {
+        const response = await fetch("/api/messages");
+        const data = await response.json();
+
+        if (!data.success) {
+          statusText.textContent = data.message || "Không lấy được tin nhắn.";
+          return;
+        }
+
+        const myName = usernameInput.value.trim();
+        const shouldScroll = data.messages.length !== lastMessageCount;
+
+        messagesBox.innerHTML = "";
+
+        data.messages.forEach(function (item) {
+          const isMine = myName && item.username === myName;
+
+          const row = document.createElement("div");
+          row.className = "message-row " + (isMine ? "mine" : "other");
+
+          const meta = document.createElement("div");
+          meta.className = "message-meta";
+          meta.textContent = item.username + " • " + formatTime(item.created_at);
+
+          const bubble = document.createElement("div");
+          bubble.className = "bubble";
+          bubble.innerHTML = escapeHTML(item.message);
+
+          row.appendChild(meta);
+          row.appendChild(bubble);
+          messagesBox.appendChild(row);
+        });
+
+        if (shouldScroll) {
+          messagesBox.scrollTop = messagesBox.scrollHeight;
+        }
+
+        lastMessageCount = data.messages.length;
+        statusText.textContent = "";
+      } catch (error) {
+        statusText.textContent = "Không kết nối được server chat.";
+      }
+    }
+
+    async function sendMessage() {
+      const username = usernameInput.value.trim();
+      const message = messageInput.value.trim();
+
+      if (!username) {
+        statusText.textContent = "Bạn cần nhập tên trước.";
+        return;
+      }
+
+      if (!message) {
+        statusText.textContent = "Bạn chưa nhập tin nhắn.";
+        return;
+      }
+
+      localStorage.setItem("chat_username", username);
+
+      try {
+        const response = await fetch("/api/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            username: username,
+            message: message
+          })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          statusText.textContent = data.message || "Gửi tin nhắn thất bại.";
+          return;
+        }
+
+        messageInput.value = "";
+        await loadMessages();
+      } catch (error) {
+        statusText.textContent = "Không gửi được tin nhắn.";
+      }
+    }
+
+    messageInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        sendMessage();
+      }
+    });
+
+    usernameInput.addEventListener("change", function () {
+      localStorage.setItem("chat_username", usernameInput.value.trim());
+      loadMessages();
+    });
+
+    loadMessages();
+    setInterval(loadMessages, 2000);
+  </script>
+</body>
+</html>

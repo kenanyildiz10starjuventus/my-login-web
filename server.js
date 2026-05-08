@@ -463,6 +463,64 @@ app.post("/api/messages", async function (req, res) {
   }
 });
 
+app.get("/api/messages", async function (req, res) {
+  try {
+    const result = await pool.query(
+      "SELECT id, username, message, created_at FROM messages ORDER BY id ASC LIMIT 100"
+    );
+
+    res.json({
+      success: true,
+      messages: result.rows
+    });
+  } catch (err) {
+    console.error("Lỗi lấy tin nhắn:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy tin nhắn."
+    });
+  }
+});
+
+app.post("/api/messages", async function (req, res) {
+  try {
+    const username = req.body.username ? req.body.username.trim() : "";
+    const message = req.body.message ? req.body.message.trim() : "";
+
+    if (!username || !message) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu tên người dùng hoặc tin nhắn."
+      });
+    }
+
+    if (message.length > 500) {
+      return res.status(400).json({
+        success: false,
+        message: "Tin nhắn quá dài."
+      });
+    }
+
+    await pool.query(
+      "INSERT INTO messages (username, message) VALUES ($1, $2)",
+      [username, message]
+    );
+
+    res.json({
+      success: true,
+      message: "Đã gửi tin nhắn."
+    });
+  } catch (err) {
+    console.error("Lỗi gửi tin nhắn:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi gửi tin nhắn."
+    });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, function () {
