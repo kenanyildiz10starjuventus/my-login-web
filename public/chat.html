@@ -365,6 +365,43 @@
 .reply-message-btn:hover {
   background: rgba(255,255,255,0.22);
 }
+
+.date-separator {
+  align-self: center;
+  margin: 14px 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #dce6ff;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.emoji-bar {
+  display: flex;
+  gap: 8px;
+  padding: 0 18px 12px;
+  flex-wrap: wrap;
+}
+
+.emoji-btn {
+  border: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  cursor: pointer;
+  font-size: 20px;
+  transition: 0.2s;
+}
+
+.emoji-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  background: rgba(255, 255, 255, 0.2);
+}
+
   </style>
 </head>
 
@@ -392,6 +429,18 @@
   <div class="reply-box-text" id="replyBoxText"></div>
   <button onclick="cancelReply()">×</button>
 </div>
+
+ <div class="emoji-bar">
+  <button class="emoji-btn" onclick="addEmoji('❤️')">❤️</button>
+  <button class="emoji-btn" onclick="addEmoji('😂')">😂</button>
+  <button class="emoji-btn" onclick="addEmoji('🥰')">🥰</button>
+  <button class="emoji-btn" onclick="addEmoji('😴')">😴</button>
+  <button class="emoji-btn" onclick="addEmoji('😭')">😭</button>
+  <button class="emoji-btn" onclick="addEmoji('👍')">👍</button>
+  <button class="emoji-btn" onclick="addEmoji('🌙')">🌙</button>
+  <button class="emoji-btn" onclick="addEmoji('✨')">✨</button>
+</div>
+
     <div class="chat-input">
       <input id="messageInput" placeholder="Nhập tin nhắn..." />
       <button onclick="sendMessage()">Gửi</button>
@@ -447,6 +496,51 @@ if (!savedUser) {
 
     return h + ":" + m;
   }
+
+  function getDateKey(dateText) {
+  const date = new Date(dateText);
+
+  if (isNaN(date.getTime())) {
+    return "";
+  }
+
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+
+  return y + "-" + m + "-" + d;
+}
+
+function formatDateSeparator(dateText) {
+  const date = new Date(dateText);
+
+  if (isNaN(date.getTime())) {
+    return "";
+  }
+
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const dateKey = getDateKey(date);
+  const todayKey = getDateKey(today);
+  const yesterdayKey = getDateKey(yesterday);
+
+  if (dateKey === todayKey) {
+    return "Hôm nay";
+  }
+
+  if (dateKey === yesterdayKey) {
+    return "Hôm qua";
+  }
+
+  const d = String(date.getDate()).padStart(2, "0");
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const y = date.getFullYear();
+
+  return d + "/" + m + "/" + y;
+}
+
 
   function escapeHTML(text) {
     return text
@@ -559,9 +653,22 @@ content.appendChild(tools);
 
       messagesBox.innerHTML = "";
 
-      data.messages.forEach(function (item) {
-        addMessage(item);
-      });
+let lastDateKey = "";
+
+data.messages.forEach(function (item) {
+  const currentDateKey = getDateKey(item.created_at);
+
+  if (currentDateKey !== lastDateKey) {
+    const separator = document.createElement("div");
+    separator.className = "date-separator";
+    separator.textContent = formatDateSeparator(item.created_at);
+
+    messagesBox.appendChild(separator);
+    lastDateKey = currentDateKey;
+  }
+
+  addMessage(item);
+});
 
       statusText.textContent = "";
     } catch (error) {
@@ -589,6 +696,11 @@ function cancelReply() {
   replyingTo = null;
   replyBox.classList.remove("show");
   replyBoxText.textContent = "";
+}
+
+function addEmoji(emoji) {
+  messageInput.value += emoji;
+  messageInput.focus();
 }
 
   function sendMessage() {
