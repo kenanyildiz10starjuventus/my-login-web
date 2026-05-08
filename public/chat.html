@@ -654,14 +654,14 @@ tools.appendChild(replyBtn);
 if (isMine) {
   const editBtn = document.createElement("button");
   editBtn.className = "edit-message-btn";
-  editBtn.textContent = "Sửa";
+  editBtn.textContent = "✏️";
   editBtn.onclick = function () {
     editMessage(item.id, item.message);
   };
 
   const deleteBtn = document.createElement("button");
   deleteBtn.className = "delete-message-btn";
-  deleteBtn.textContent = "Xóa";
+  deleteBtn.textContent = "🗑️";
   deleteBtn.onclick = function () {
     deleteMessage(item.id);
   };
