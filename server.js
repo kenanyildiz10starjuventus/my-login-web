@@ -50,6 +50,18 @@ pool.query(`
 `).catch(function (err) {
   console.error("Lỗi tạo bảng messages:", err.message);
 });
+pool.query(`
+  CREATE TABLE IF NOT EXISTS message_reactions (
+    id SERIAL PRIMARY KEY,
+    message_id INTEGER NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+    username TEXT NOT NULL,
+    emoji TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(message_id, username, emoji)
+  )
+`).catch(function (err) {
+  console.error("Lỗi tạo bảng message_reactions:", err.message);
+});
 
 pool.query(`
   ALTER TABLE messages
@@ -477,15 +489,39 @@ app.delete("/delete-account", async function (req, res) {
 // Lấy tin nhắn phòng chung
 app.get("/api/messages", async function (req, res) {
   try {
-    const result = await pool.query(
-      `
-      SELECT id, username, message, created_at,
-             reply_to_id, reply_to_username, reply_to_message
-      FROM messages
-      ORDER BY id ASC
-      LIMIT 300
-      `
-    );
+   const result = await pool.query(
+  `
+  SELECT 
+    m.id,
+    m.username,
+    m.message,
+    m.created_at,
+    m.reply_to_id,
+    m.reply_to_username,
+    m.reply_to_message,
+    COALESCE(
+      (
+        SELECT json_agg(
+          json_build_object(
+            'emoji', r.emoji,
+            'count', r.total_count
+          )
+        )
+        FROM (
+          SELECT emoji, COUNT(*) AS total_count
+          FROM message_reactions
+          WHERE message_id = m.id
+          GROUP BY emoji
+          ORDER BY emoji
+        ) r
+      ),
+      '[]'::json
+    ) AS reactions
+  FROM messages m
+  ORDER BY m.id ASC
+  LIMIT 300
+  `
+);
 
     res.json({
       success: true,
@@ -804,6 +840,98 @@ app.get("/api/private-messages/:conversationId", async function (req, res) {
 // =======================
 // SOCKET.IO
 // =======================
+
+app.post("/api/messages/:id/reactions", async function (req, res) {
+  try {
+    const messageId = req.params.id;
+    const username = req.body.username ? req.body.username.trim() : "";
+    const emoji = req.body.emoji ? req.body.emoji.trim() : "";
+
+    if (!messageId || !username || !emoji) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu ID tin nhắn, username hoặc emoji."
+      });
+    }
+
+    const messageCheck = await pool.query(
+      "SELECT id FROM messages WHERE id = $1",
+      [messageId]
+    );
+
+    if (messageCheck.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy tin nhắn."
+      });
+    }
+
+    const existingReaction = await pool.query(
+      `
+      SELECT id 
+      FROM message_reactions
+      WHERE message_id = $1 AND username = $2 AND emoji = $3
+      `,
+      [messageId, username, emoji]
+    );
+
+    if (existingReaction.rows.length > 0) {
+      await pool.query(
+        `
+        DELETE FROM message_reactions
+        WHERE message_id = $1 AND username = $2 AND emoji = $3
+        `,
+        [messageId, username, emoji]
+      );
+    } else {
+      await pool.query(
+        `
+        INSERT INTO message_reactions (message_id, username, emoji)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (message_id, username, emoji) DO NOTHING
+        `,
+        [messageId, username, emoji]
+      );
+    }
+
+    const reactionsResult = await pool.query(
+      `
+      SELECT emoji, COUNT(*) AS count
+      FROM message_reactions
+      WHERE message_id = $1
+      GROUP BY emoji
+      ORDER BY emoji
+      `,
+      [messageId]
+    );
+
+    const reactions = reactionsResult.rows.map(function (item) {
+      return {
+        emoji: item.emoji,
+        count: Number(item.count)
+      };
+    });
+
+    io.emit("update_message_reactions", {
+      messageId: Number(messageId),
+      reactions: reactions
+    });
+
+    res.json({
+      success: true,
+      message: "Đã cập nhật reaction.",
+      messageId: Number(messageId),
+      reactions: reactions
+    });
+  } catch (err) {
+    console.error("Lỗi reaction:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi reaction."
+    });
+  }
+});
 
 io.on("connection", function (socket) {
   console.log("Một người dùng đã kết nối:", socket.id);
