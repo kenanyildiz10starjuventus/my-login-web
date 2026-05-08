@@ -7,8 +7,7 @@
   <title>Phòng chat</title>
 
   <style>
-
-  * {
+    * {
       box-sizing: border-box;
       font-family: Arial, sans-serif;
     }
@@ -17,8 +16,9 @@
       margin: 0;
       min-height: 100vh;
       background:
-        radial-gradient(circle at top left, rgba(124, 60, 255, 0.45), transparent 32%),
-        radial-gradient(circle at bottom right, rgba(0, 212, 255, 0.28), transparent 34%),
+        radial-gradient(circle at top left, rgba(255, 111, 165, 0.28), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(0, 212, 255, 0.26), transparent 34%),
+        radial-gradient(circle at top right, rgba(167, 139, 250, 0.22), transparent 28%),
         #070816;
       color: white;
       display: flex;
@@ -28,11 +28,14 @@
     }
 
     .chat-page {
-      width: min(950px, 100%);
-      height: min(760px, 92vh);
+      width: min(1050px, 100%);
+      height: min(820px, 94vh);
       border-radius: 30px;
       overflow: hidden;
-      background: rgba(255,255,255,0.09);
+      background:
+        radial-gradient(circle at top left, rgba(255, 182, 193, 0.10), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(125, 211, 252, 0.12), transparent 32%),
+        rgba(255,255,255,0.09);
       border: 1px solid rgba(255,255,255,0.15);
       backdrop-filter: blur(22px);
       box-shadow: 0 30px 100px rgba(0,0,0,0.45);
@@ -47,16 +50,27 @@
       justify-content: space-between;
       align-items: center;
       gap: 14px;
+      background: rgba(255,255,255,0.03);
     }
 
     .chat-header h1 {
       margin: 0 0 6px;
-      font-size: 28px;
+      font-size: 30px;
+      letter-spacing: 0.2px;
     }
 
     .chat-header p {
       margin: 0;
-      color: #c7d2ff;
+      color: #d6dcff;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    #typingText {
+      margin-top: 5px;
+      color: #ffd6f1;
+      font-style: italic;
+      min-height: 18px;
       font-size: 14px;
     }
 
@@ -65,10 +79,16 @@
       color: white;
       background: rgba(255,255,255,0.12);
       border: 1px solid rgba(255,255,255,0.16);
-      padding: 12px 16px;
+      padding: 13px 20px;
       border-radius: 999px;
       font-weight: bold;
       white-space: nowrap;
+      transition: 0.2s;
+    }
+
+    .back-btn:hover {
+      background: rgba(255,255,255,0.2);
+      transform: translateY(-1px);
     }
 
     .name-box {
@@ -84,32 +104,65 @@
       font-weight: bold;
       color: #dce6ff;
       white-space: nowrap;
+      font-size: 16px;
     }
 
     .name-box input {
       flex: 1;
-      padding: 12px 14px;
-      border-radius: 14px;
+      padding: 14px 16px;
+      border-radius: 16px;
       border: 1px solid rgba(255,255,255,0.14);
       background: rgba(255,255,255,0.08);
       color: white;
       outline: none;
-      font-size: 15px;
+      font-size: 16px;
     }
 
     .messages {
       flex: 1;
       overflow-y: auto;
-      padding: 22px;
+      padding: 24px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 13px;
+      background:
+        radial-gradient(circle at top left, rgba(255, 182, 193, 0.09), transparent 25%),
+        radial-gradient(circle at bottom right, rgba(125, 211, 252, 0.10), transparent 28%);
+      scroll-behavior: smooth;
+    }
+
+    .messages::-webkit-scrollbar {
+      width: 9px;
+    }
+
+    .messages::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+      border-radius: 999px;
+    }
+
+    .messages::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.22);
+      border-radius: 999px;
+    }
+
+    .date-separator {
+      align-self: center;
+      margin: 14px 0;
+      padding: 7px 15px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #e6ebff;
+      font-size: 13px;
+      font-weight: bold;
+      backdrop-filter: blur(10px);
     }
 
     .message-row {
-      max-width: 75%;
+      max-width: 78%;
       display: flex;
       flex-direction: column;
+      animation: fadeInUp 0.24s ease;
     }
 
     .message-row.mine {
@@ -122,62 +175,308 @@
       text-align: left;
     }
 
+    .message-line {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    .message-row.mine .message-line {
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      font-weight: 900;
+      color: white;
+      background: linear-gradient(135deg, #7c3cff, #00d4ff);
+      box-shadow: 0 8px 24px rgba(0, 212, 255, 0.25);
+    }
+
+    .message-row.mine .avatar {
+      background: linear-gradient(135deg, #ff6fa5, #ff9cc2);
+      box-shadow: 0 8px 24px rgba(255, 111, 165, 0.24);
+    }
+
+    .message-row.other .avatar {
+      background: linear-gradient(135deg, #7c3cff, #00d4ff);
+    }
+
+    .message-content {
+      display: flex;
+      flex-direction: column;
+      max-width: 100%;
+    }
+
+    .message-row.mine .message-content {
+      align-items: flex-end;
+    }
+
     .message-meta {
       font-size: 12px;
-      color: #b7c3e8;
-      margin-bottom: 5px;
+      color: rgba(221, 228, 255, 0.78);
+      margin-bottom: 6px;
       padding: 0 6px;
     }
 
+    .reply-preview {
+      margin-bottom: 8px;
+      padding: 9px 11px;
+      border-left: 3px solid #ffd3e1;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 13px;
+      color: #fff7fb;
+      font-size: 13px;
+      line-height: 1.4;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .reply-preview:hover {
+      background: rgba(255, 255, 255, 0.18);
+      transform: translateY(-1px);
+    }
+
+    .reply-preview strong {
+      color: #ffe3ee;
+    }
+
     .bubble {
-      padding: 13px 15px;
-      border-radius: 18px;
+      position: relative;
+      padding: 14px 16px;
+      border-radius: 22px;
       line-height: 1.55;
       word-wrap: break-word;
       white-space: pre-wrap;
+      font-size: 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      transition: 0.18s ease;
+    }
+
+    .bubble:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 34px rgba(0,0,0,0.2);
     }
 
     .mine .bubble {
-      background: linear-gradient(135deg, #7c3cff, #00d4ff);
+      background: linear-gradient(135deg, #ff6fa5, #ff85b3, #ff9fc4);
       color: white;
-      border-bottom-right-radius: 6px;
+      border-bottom-right-radius: 8px;
     }
 
     .other .bubble {
       background: rgba(255,255,255,0.12);
       border: 1px solid rgba(255,255,255,0.12);
       color: #f5f7ff;
-      border-bottom-left-radius: 6px;
+      border-bottom-left-radius: 8px;
+    }
+
+    .mine .bubble::after {
+      content: "";
+      position: absolute;
+      right: -6px;
+      bottom: 0;
+      width: 16px;
+      height: 16px;
+      background: #ff9fc4;
+      border-bottom-left-radius: 14px;
+      clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    .other .bubble::after {
+      content: "";
+      position: absolute;
+      left: -6px;
+      bottom: 0;
+      width: 16px;
+      height: 16px;
+      background: rgba(255,255,255,0.14);
+      border-bottom-right-radius: 14px;
+      clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    }
+
+    .message-tools {
+      margin-top: 7px;
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .message-row.mine .message-tools {
+      justify-content: flex-end;
+    }
+
+    .reply-message-btn,
+    .edit-message-btn,
+    .delete-message-btn {
+      border: none;
+      min-width: 36px;
+      height: 36px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: 0.2s;
+      color: white;
+      backdrop-filter: blur(8px);
+    }
+
+    .reply-message-btn {
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .reply-message-btn:hover {
+      background: rgba(255, 255, 255, 0.24);
+      transform: translateY(-1px);
+    }
+
+    .edit-message-btn {
+      background: rgba(0, 212, 255, 0.16);
+      border: 1px solid rgba(0, 212, 255, 0.28);
+    }
+
+    .edit-message-btn:hover {
+      background: rgba(0, 212, 255, 0.30);
+      transform: translateY(-1px);
+    }
+
+    .delete-message-btn {
+      background: rgba(255, 80, 120, 0.18);
+      border: 1px solid rgba(255, 120, 160, 0.25);
+    }
+
+    .delete-message-btn:hover {
+      background: rgba(255, 80, 120, 0.34);
+      transform: translateY(-1px);
+    }
+
+    .edited-label {
+      font-size: 11px;
+      color: rgba(220, 231, 255, 0.72);
+      margin-top: 5px;
+      padding: 0 6px;
     }
 
     .status {
-      padding: 0 24px 14px;
+      padding: 8px 24px 8px;
       color: #ffd6e8;
       font-size: 14px;
-      min-height: 22px;
+      min-height: 28px;
     }
 
-    .chat-input {
-      padding: 18px;
-      display: flex;
+    .reply-box {
+      display: none;
+      margin: 0 18px 10px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 182, 193, 0.12);
+      border: 1px solid rgba(255, 182, 193, 0.22);
+      color: white;
+      justify-content: space-between;
+      align-items: center;
       gap: 12px;
+    }
+
+    .reply-box.show {
+      display: flex;
+    }
+
+    .reply-box-text {
+      font-size: 14px;
+      line-height: 1.4;
+      color: #fff0f7;
+    }
+
+    .reply-box-text strong {
+      color: #ffd8e9;
+    }
+
+    .reply-box button {
+      border: none;
+      background: rgba(255,255,255,0.12);
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .reply-box button:hover {
+      background: rgba(255,255,255,0.22);
+    }
+
+    .chat-input-wrap {
+      position: relative;
+      padding: 16px 18px 18px;
       border-top: 1px solid rgba(255,255,255,0.12);
       background: rgba(255,255,255,0.05);
     }
 
+    .chat-input {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
     .chat-input input {
       flex: 1;
-      padding: 15px 16px;
-      border-radius: 18px;
+      padding: 16px 18px;
+      border-radius: 20px;
       border: 1px solid rgba(255,255,255,0.14);
       background: rgba(255,255,255,0.08);
       color: white;
       outline: none;
       font-size: 16px;
+      min-width: 0;
+      transition: 0.2s;
     }
 
-    .chat-input button {
+    .chat-input input:focus {
+      border-color: rgba(255, 182, 193, 0.58);
+      box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.12);
+    }
+
+    input::placeholder {
+      color: rgba(255,255,255,0.5);
+    }
+
+    .emoji-toggle-btn {
+      width: 56px;
+      height: 56px;
+      padding: 0;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.10);
+      color: white;
+      font-size: 25px;
+      cursor: pointer;
+      box-shadow: none;
+      transition: 0.2s;
+      flex-shrink: 0;
+    }
+
+    .emoji-toggle-btn:hover {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.18);
+    }
+
+    .emoji-toggle-btn.active {
+      background: rgba(255, 111, 165, 0.25);
+      border-color: rgba(255, 111, 165, 0.38);
+    }
+
+    .send-btn {
       border: none;
+      min-width: 92px;
+      height: 56px;
       padding: 0 24px;
       border-radius: 18px;
       background: linear-gradient(135deg, #7c3cff, #00d4ff);
@@ -186,10 +485,82 @@
       font-size: 15px;
       cursor: pointer;
       box-shadow: 0 14px 35px rgba(0,212,255,0.22);
+      transition: 0.2s;
+      flex-shrink: 0;
     }
 
-    input::placeholder {
-      color: rgba(255,255,255,0.5);
+    .send-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+
+    .emoji-picker {
+      display: none;
+      position: absolute;
+      right: 128px;
+      bottom: 88px;
+      padding: 12px;
+      gap: 9px;
+      flex-wrap: wrap;
+      max-width: 370px;
+      border-radius: 20px;
+      background: rgba(30, 31, 50, 0.96);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 20px 45px rgba(0,0,0,0.35);
+      z-index: 50;
+      backdrop-filter: blur(18px);
+    }
+
+    .emoji-picker.show {
+      display: flex;
+    }
+
+    .emoji-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.08);
+      cursor: pointer;
+      font-size: 21px;
+      transition: 0.2s;
+    }
+
+    .emoji-btn:hover {
+      transform: scale(1.08);
+      background: rgba(255,255,255,0.16);
+    }
+
+    .message-row.jump-highlight .bubble {
+      animation: jumpFlash 1.2s ease;
+      outline: 2px solid rgba(255, 214, 234, 0.9);
+      box-shadow: 0 0 28px rgba(255, 182, 193, 0.42);
+    }
+
+    @keyframes jumpFlash {
+      0% {
+        transform: scale(1);
+      }
+
+      35% {
+        transform: scale(1.04);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     @media (max-width: 700px) {
@@ -213,225 +584,53 @@
       }
 
       .message-row {
-        max-width: 88%;
+        max-width: 90%;
+      }
+
+      .avatar {
+        width: 34px;
+        height: 34px;
+        font-size: 14px;
+      }
+
+      .bubble {
+        font-size: 14px;
+        padding: 12px 14px;
       }
 
       .chat-input {
-        flex-direction: column;
+        gap: 8px;
       }
 
-      .chat-input button {
-        padding: 14px;
+      .emoji-toggle-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 22px;
+      }
+
+      .send-btn {
+        min-width: 70px;
+        height: 48px;
+        padding: 0 16px;
+      }
+
+      .chat-input input {
+        padding: 13px 14px;
+      }
+
+      .emoji-picker {
+        right: 88px;
+        bottom: 78px;
+        max-width: 260px;
+      }
+
+      .emoji-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
       }
     }
-
-    .message-line {
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
-}
-
-.message-row.mine .message-line {
-  flex-direction: row-reverse;
-}
-
-.avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  font-weight: 900;
-  color: white;
-  background: linear-gradient(135deg, #7c3cff, #00d4ff);
-  box-shadow: 0 8px 24px rgba(0, 212, 255, 0.25);
-}
-
-.message-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.message-row.mine .message-content {
-  align-items: flex-end;
-}
-
-.message-tools {
-  margin-top: 5px;
-}
-
-.delete-message-btn {
-  border: none;
-  background: rgba(255, 80, 120, 0.18);
-  color: #ffd6e1;
-  border: 1px solid rgba(255, 120, 160, 0.25);
-  padding: 5px 9px;
-  border-radius: 999px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.delete-message-btn:hover {
-  background: rgba(255, 80, 120, 0.32);
-}
-
-.edit-message-btn {
-  border: none;
-  background: rgba(0, 212, 255, 0.18);
-  color: #d6f8ff;
-  border: 1px solid rgba(0, 212, 255, 0.28);
-  padding: 5px 9px;
-  border-radius: 999px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: 0.2s;
-  margin-right: 6px;
-}
-
-.edit-message-btn:hover {
-  background: rgba(0, 212, 255, 0.32);
-}
-
-.edited-label {
-  font-size: 11px;
-  color: #b7c3e8;
-  margin-top: 4px;
-  opacity: 0.8;
-}
-.reply-preview {
-  margin-bottom: 8px;
-  padding: 9px 11px;
-  border-left: 3px solid #00d4ff;
-  background: rgba(0, 212, 255, 0.12);
-  border-radius: 12px;
-  color: #dff8ff;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.reply-preview strong {
-  color: #8eeaff;
-}
-
-.reply-box {
-  display: none;
-  margin: 0 18px 10px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  background: rgba(0, 212, 255, 0.12);
-  border: 1px solid rgba(0, 212, 255, 0.22);
-  color: white;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.reply-box.show {
-  display: flex;
-}
-
-.reply-box-text {
-  font-size: 14px;
-  line-height: 1.4;
-  color: #dff8ff;
-}
-
-.reply-box button {
-  border: none;
-  background: rgba(255,255,255,0.12);
-  color: white;
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-.reply-message-btn {
-  border: none;
-  background: rgba(255, 255, 255, 0.12);
-  color: #eaf6ff;
-  border: 1px solid rgba(255,255,255,0.18);
-  padding: 5px 9px;
-  border-radius: 999px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: 0.2s;
-  margin-right: 6px;
-}
-
-.reply-message-btn:hover {
-  background: rgba(255,255,255,0.22);
-}
-
-.date-separator {
-  align-self: center;
-  margin: 14px 0;
-  padding: 7px 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: #dce6ff;
-  font-size: 13px;
-  font-weight: bold;
-}
-
-.emoji-bar {
-  display: flex;
-  gap: 8px;
-  padding: 0 18px 12px;
-  flex-wrap: wrap;
-}
-
-.emoji-btn {
-  border: none;
-  width: 38px;
-  height: 38px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  cursor: pointer;
-  font-size: 20px;
-  transition: 0.2s;
-}
-
-.emoji-btn:hover {
-  transform: translateY(-2px) scale(1.05);
-  background: rgba(255, 255, 255, 0.2);
-}
-
-#typingText {
-  margin-top: 4px;
-  color: #ffd6f1;
-  font-style: italic;
-  min-height: 18px;
-}
-
-.reply-preview {
-  cursor: pointer;
-}
-
-.message-row.jump-highlight .bubble {
-  animation: jumpFlash 1.2s ease;
-  outline: 2px solid rgba(0, 212, 255, 0.8);
-  box-shadow: 0 0 28px rgba(0, 212, 255, 0.45);
-}
-
-@keyframes jumpFlash {
-  0% {
-    transform: scale(1);
-  }
-
-  35% {
-    transform: scale(1.04);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-</style>
+  </style>
 </head>
 
 <body>
@@ -440,7 +639,7 @@
       <div>
         <h1>Phòng chat 💬</h1>
         <p>Chat realtime giữa các người dùng, tin nhắn hiện ngay lập tức.</p>
-<p id="typingText"></p>
+        <p id="typingText"></p>
       </div>
 
       <a href="/welcome.html" class="back-btn">Trang chủ</a>
@@ -448,7 +647,7 @@
 
     <div class="name-box">
       <label for="usernameInput">Tên của bạn:</label>
-     <input id="usernameInput" placeholder="Tên sẽ tự lấy từ tài khoản đăng nhập" readonly />
+      <input id="usernameInput" placeholder="Tên sẽ tự lấy từ tài khoản đăng nhập" readonly />
     </div>
 
     <div class="messages" id="messages"></div>
@@ -456,494 +655,517 @@
     <div class="status" id="statusText"></div>
 
     <div class="reply-box" id="replyBox">
-  <div class="reply-box-text" id="replyBoxText"></div>
-  <button onclick="cancelReply()">×</button>
-</div>
+      <div class="reply-box-text" id="replyBoxText"></div>
+      <button onclick="cancelReply()">×</button>
+    </div>
 
- <div class="emoji-bar">
-  <button class="emoji-btn" onclick="addEmoji('❤️')">❤️</button>
-  <button class="emoji-btn" onclick="addEmoji('😂')">😂</button>
-  <button class="emoji-btn" onclick="addEmoji('🥰')">🥰</button>
-  <button class="emoji-btn" onclick="addEmoji('😴')">😴</button>
-  <button class="emoji-btn" onclick="addEmoji('😭')">😭</button>
-  <button class="emoji-btn" onclick="addEmoji('👍')">👍</button>
-  <button class="emoji-btn" onclick="addEmoji('🌙')">🌙</button>
-  <button class="emoji-btn" onclick="addEmoji('✨')">✨</button>
-</div>
+    <div class="chat-input-wrap">
+      <div id="emojiPicker" class="emoji-picker">
+        <button class="emoji-btn" onclick="addEmoji('❤️')">❤️</button>
+        <button class="emoji-btn" onclick="addEmoji('😂')">😂</button>
+        <button class="emoji-btn" onclick="addEmoji('🥰')">🥰</button>
+        <button class="emoji-btn" onclick="addEmoji('😴')">😴</button>
+        <button class="emoji-btn" onclick="addEmoji('😭')">😭</button>
+        <button class="emoji-btn" onclick="addEmoji('👍')">👍</button>
+        <button class="emoji-btn" onclick="addEmoji('🌙')">🌙</button>
+        <button class="emoji-btn" onclick="addEmoji('✨')">✨</button>
+      </div>
 
-    <div class="chat-input">
-      <input id="messageInput" placeholder="Nhập tin nhắn..." />
-      <button onclick="sendMessage()">Gửi</button>
+      <div class="chat-input">
+        <input id="messageInput" placeholder="Nhập tin nhắn..." />
+        <button type="button" id="emojiToggleBtn" class="emoji-toggle-btn">😊</button>
+        <button class="send-btn" onclick="sendMessage()">Gửi</button>
+      </div>
     </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
 
-<script>
-  const socket = io();
+  <script>
+    const socket = io();
 
-  const usernameInput = document.getElementById("usernameInput");
-  const messageInput = document.getElementById("messageInput");
-  const messagesBox = document.getElementById("messages");
-  const statusText = document.getElementById("statusText");
-  const typingText = document.getElementById("typingText");
-let typingTimer = null;
-  const replyBox = document.getElementById("replyBox");
-const replyBoxText = document.getElementById("replyBoxText");
+    const usernameInput = document.getElementById("usernameInput");
+    const messageInput = document.getElementById("messageInput");
+    const messagesBox = document.getElementById("messages");
+    const statusText = document.getElementById("statusText");
+    const typingText = document.getElementById("typingText");
+    const replyBox = document.getElementById("replyBox");
+    const replyBoxText = document.getElementById("replyBoxText");
+    const emojiToggleBtn = document.getElementById("emojiToggleBtn");
+    const emojiPicker = document.getElementById("emojiPicker");
 
-let replyingTo = null;
+    let typingTimer = null;
+    let replyingTo = null;
 
- const savedUser = localStorage.getItem("currentUser");
+    const savedUser = localStorage.getItem("currentUser");
 
-if (!savedUser) {
-  alert("Bạn cần đăng nhập trước khi vào phòng chat.");
-  window.location.href = "/";
-} else {
-  try {
-    const user = JSON.parse(savedUser);
-
-    if (user.name) {
-      usernameInput.value = user.name;
-    } else if (user.email) {
-      usernameInput.value = user.email;
-    } else {
-      alert("Không lấy được tên người dùng. Hãy đăng nhập lại.");
+    if (!savedUser) {
+      alert("Bạn cần đăng nhập trước khi vào phòng chat.");
       window.location.href = "/";
+    } else {
+      try {
+        const user = JSON.parse(savedUser);
+
+        if (user.name) {
+          usernameInput.value = user.name;
+        } else if (user.email) {
+          usernameInput.value = user.email;
+        } else {
+          alert("Không lấy được tên người dùng. Hãy đăng nhập lại.");
+          window.location.href = "/";
+        }
+      } catch (error) {
+        alert("Phiên đăng nhập bị lỗi. Hãy đăng nhập lại.");
+        window.location.href = "/";
+      }
     }
-  } catch (error) {
-    alert("Phiên đăng nhập bị lỗi. Hãy đăng nhập lại.");
-    window.location.href = "/";
-  }
-}
 
-  function formatTime(dateText) {
-    const date = new Date(dateText);
+    function formatTime(dateText) {
+      const date = new Date(dateText);
 
-    if (isNaN(date.getTime())) {
-      return "";
+      if (isNaN(date.getTime())) {
+        return "";
+      }
+
+      const h = date.getHours().toString().padStart(2, "0");
+      const m = date.getMinutes().toString().padStart(2, "0");
+
+      return h + ":" + m;
     }
 
-    const h = date.getHours().toString().padStart(2, "0");
-    const m = date.getMinutes().toString().padStart(2, "0");
+    function getDateKey(dateText) {
+      const date = new Date(dateText);
 
-    return h + ":" + m;
-  }
+      if (isNaN(date.getTime())) {
+        return "";
+      }
 
-  function getDateKey(dateText) {
-  const date = new Date(dateText);
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
 
-  if (isNaN(date.getTime())) {
-    return "";
-  }
+      return y + "-" + m + "-" + d;
+    }
 
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
+    function formatDateSeparator(dateText) {
+      const date = new Date(dateText);
 
-  return y + "-" + m + "-" + d;
-}
+      if (isNaN(date.getTime())) {
+        return "";
+      }
 
-function formatDateSeparator(dateText) {
-  const date = new Date(dateText);
+      const today = new Date();
+      const yesterday = new Date();
+      yesterday.setDate(today.getDate() - 1);
 
-  if (isNaN(date.getTime())) {
-    return "";
-  }
+      const dateKey = getDateKey(date);
+      const todayKey = getDateKey(today);
+      const yesterdayKey = getDateKey(yesterday);
 
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
+      if (dateKey === todayKey) {
+        return "Hôm nay";
+      }
 
-  const dateKey = getDateKey(date);
-  const todayKey = getDateKey(today);
-  const yesterdayKey = getDateKey(yesterday);
+      if (dateKey === yesterdayKey) {
+        return "Hôm qua";
+      }
 
-  if (dateKey === todayKey) {
-    return "Hôm nay";
-  }
+      const d = String(date.getDate()).padStart(2, "0");
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const y = date.getFullYear();
 
-  if (dateKey === yesterdayKey) {
-    return "Hôm qua";
-  }
+      return d + "/" + m + "/" + y;
+    }
 
-  const d = String(date.getDate()).padStart(2, "0");
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const y = date.getFullYear();
+    function escapeHTML(text) {
+      return String(text || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
 
-  return d + "/" + m + "/" + y;
-}
+    function getAvatarLetter(name) {
+      if (!name || name.trim() === "") {
+        return "?";
+      }
 
+      return name.trim().charAt(0).toUpperCase();
+    }
 
-  function escapeHTML(text) {
-    return text
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
+    function addMessage(item) {
+      const myName = usernameInput.value.trim();
+      const isMine = myName && item.username === myName;
 
- function getAvatarLetter(name) {
-  if (!name || name.trim() === "") {
-    return "?";
-  }
+      const row = document.createElement("div");
+      row.className = "message-row " + (isMine ? "mine" : "other");
+      row.dataset.messageId = item.id;
 
-  return name.trim().charAt(0).toUpperCase();
-}
+      const line = document.createElement("div");
+      line.className = "message-line";
 
-function addMessage(item) {
-  const myName = usernameInput.value.trim();
-  const isMine = myName && item.username === myName;
+      const avatar = document.createElement("div");
+      avatar.className = "avatar";
+      avatar.textContent = getAvatarLetter(item.username);
 
-  const row = document.createElement("div");
-  row.className = "message-row " + (isMine ? "mine" : "other");
-  row.dataset.messageId = item.id;
+      const content = document.createElement("div");
+      content.className = "message-content";
 
-  const line = document.createElement("div");
-  line.className = "message-line";
+      const meta = document.createElement("div");
+      meta.className = "message-meta";
+      meta.textContent = item.username + " • " + formatTime(item.created_at);
 
-  const avatar = document.createElement("div");
-  avatar.className = "avatar";
-  avatar.textContent = getAvatarLetter(item.username);
+      content.appendChild(meta);
 
-  const content = document.createElement("div");
-  content.className = "message-content";
+      if (item.reply_to_message) {
+        const replyPreview = document.createElement("div");
+        replyPreview.className = "reply-preview";
+        replyPreview.title = "Bấm để tới tin nhắn gốc";
 
-  const meta = document.createElement("div");
-  meta.className = "message-meta";
-  meta.textContent = item.username + " • " + formatTime(item.created_at);
+        replyPreview.innerHTML =
+          "<strong>" +
+          escapeHTML(item.reply_to_username || "Người dùng") +
+          "</strong><br>" +
+          escapeHTML(item.reply_to_message);
 
-  content.appendChild(meta);
+        replyPreview.onclick = function () {
+          jumpToMessage(item.reply_to_id);
+        };
 
-if (item.reply_to_message) {
-  const replyPreview = document.createElement("div");
-  replyPreview.className = "reply-preview";
-  replyPreview.title = "Bấm để tới tin nhắn gốc";
+        content.appendChild(replyPreview);
+      }
 
-  replyPreview.innerHTML =
-    "<strong>" +
-    escapeHTML(item.reply_to_username || "Người dùng") +
-    "</strong><br>" +
-    escapeHTML(item.reply_to_message);
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.innerHTML = escapeHTML(item.message);
 
-  replyPreview.onclick = function () {
-    jumpToMessage(item.reply_to_id);
-  };
+      content.appendChild(bubble);
 
-  content.appendChild(replyPreview);
-}
+      const tools = document.createElement("div");
+      tools.className = "message-tools";
 
-const bubble = document.createElement("div");
-bubble.className = "bubble";
-bubble.innerHTML = escapeHTML(item.message);
+      const replyBtn = document.createElement("button");
+      replyBtn.className = "reply-message-btn";
+      replyBtn.textContent = "↪";
+      replyBtn.title = "Trả lời";
+      replyBtn.onclick = function () {
+        startReply(item);
+      };
 
-content.appendChild(bubble);
+      tools.appendChild(replyBtn);
 
-const tools = document.createElement("div");
-tools.className = "message-tools";
+      if (isMine) {
+        const editBtn = document.createElement("button");
+        editBtn.className = "edit-message-btn";
+        editBtn.textContent = "✏️";
+        editBtn.title = "Sửa";
+        editBtn.onclick = function () {
+          editMessage(item.id, item.message);
+        };
 
-const replyBtn = document.createElement("button");
-replyBtn.className = "reply-message-btn";
-replyBtn.textContent = "↪";
-replyBtn.onclick = function () {
-  startReply(item);
-};
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "delete-message-btn";
+        deleteBtn.textContent = "🗑️";
+        deleteBtn.title = "Xóa";
+        deleteBtn.onclick = function () {
+          deleteMessage(item.id);
+        };
 
-tools.appendChild(replyBtn);
+        tools.appendChild(editBtn);
+        tools.appendChild(deleteBtn);
+      }
 
-if (isMine) {
-  const editBtn = document.createElement("button");
-  editBtn.className = "edit-message-btn";
-  editBtn.textContent = "✏️";
-  editBtn.onclick = function () {
-    editMessage(item.id, item.message);
-  };
+      content.appendChild(tools);
+      line.appendChild(avatar);
+      line.appendChild(content);
+      row.appendChild(line);
 
-  const deleteBtn = document.createElement("button");
-  deleteBtn.className = "delete-message-btn";
-  deleteBtn.textContent = "🗑️";
-  deleteBtn.onclick = function () {
-    deleteMessage(item.id);
-  };
+      messagesBox.appendChild(row);
+      messagesBox.scrollTop = messagesBox.scrollHeight;
+    }
 
-  tools.appendChild(editBtn);
-  tools.appendChild(deleteBtn);
-}
+    async function loadMessages() {
+      try {
+        const response = await fetch("/api/messages");
+        const data = await response.json();
 
-content.appendChild(tools);
-  line.appendChild(avatar);
-  line.appendChild(content);
-  row.appendChild(line);
+        if (!data.success) {
+          statusText.textContent = data.message || "Không lấy được tin nhắn.";
+          return;
+        }
 
-  messagesBox.appendChild(row);
-  messagesBox.scrollTop = messagesBox.scrollHeight;
-}
+        messagesBox.innerHTML = "";
 
-  async function loadMessages() {
-    try {
-      const response = await fetch("/api/messages");
-      const data = await response.json();
+        let lastDateKey = "";
 
-      if (!data.success) {
-        statusText.textContent = data.message || "Không lấy được tin nhắn.";
+        data.messages.forEach(function (item) {
+          const currentDateKey = getDateKey(item.created_at);
+
+          if (currentDateKey !== lastDateKey) {
+            const separator = document.createElement("div");
+            separator.className = "date-separator";
+            separator.textContent = formatDateSeparator(item.created_at);
+
+            messagesBox.appendChild(separator);
+            lastDateKey = currentDateKey;
+          }
+
+          addMessage(item);
+        });
+
+        statusText.textContent = "";
+      } catch (error) {
+        statusText.textContent = "Không kết nối được server chat.";
+      }
+    }
+
+    function startReply(item) {
+      replyingTo = {
+        id: item.id,
+        username: item.username,
+        message: item.message
+      };
+
+      replyBoxText.innerHTML =
+        "Đang trả lời <strong>" +
+        escapeHTML(item.username) +
+        "</strong>: " +
+        escapeHTML(item.message);
+
+      replyBox.classList.add("show");
+      messageInput.focus();
+    }
+
+    function cancelReply() {
+      replyingTo = null;
+      replyBox.classList.remove("show");
+      replyBoxText.textContent = "";
+    }
+
+    function addEmoji(emoji) {
+      messageInput.value += emoji;
+      messageInput.focus();
+      emojiPicker.classList.remove("show");
+      emojiToggleBtn.classList.remove("active");
+    }
+
+    emojiToggleBtn.addEventListener("click", function (event) {
+      event.stopPropagation();
+      emojiPicker.classList.toggle("show");
+      emojiToggleBtn.classList.toggle("active");
+    });
+
+    emojiPicker.addEventListener("click", function (event) {
+      event.stopPropagation();
+    });
+
+    document.addEventListener("click", function () {
+      emojiPicker.classList.remove("show");
+      emojiToggleBtn.classList.remove("active");
+    });
+
+    function sendMessage() {
+      const username = usernameInput.value.trim();
+      const message = messageInput.value.trim();
+
+      if (!username) {
+        statusText.textContent = "Bạn cần nhập tên trước.";
         return;
       }
 
-      messagesBox.innerHTML = "";
+      if (!message) {
+        statusText.textContent = "Bạn chưa nhập tin nhắn.";
+        return;
+      }
 
-let lastDateKey = "";
+      socket.emit("send_message", {
+        username: username,
+        message: message,
+        replyToId: replyingTo ? replyingTo.id : null,
+        replyToUsername: replyingTo ? replyingTo.username : null,
+        replyToMessage: replyingTo ? replyingTo.message : null
+      });
 
-data.messages.forEach(function (item) {
-  const currentDateKey = getDateKey(item.created_at);
+      socket.emit("stop_typing");
+      cancelReply();
 
-  if (currentDateKey !== lastDateKey) {
-    const separator = document.createElement("div");
-    separator.className = "date-separator";
-    separator.textContent = formatDateSeparator(item.created_at);
-
-    messagesBox.appendChild(separator);
-    lastDateKey = currentDateKey;
-  }
-
-  addMessage(item);
-});
-
+      messageInput.value = "";
       statusText.textContent = "";
-    } catch (error) {
-      statusText.textContent = "Không kết nối được server chat.";
-    }
-  }
-function startReply(item) {
-  replyingTo = {
-    id: item.id,
-    username: item.username,
-    message: item.message
-  };
-
-  replyBoxText.innerHTML =
-    "Đang trả lời <strong>" +
-    escapeHTML(item.username) +
-    "</strong>: " +
-    escapeHTML(item.message);
-
-  replyBox.classList.add("show");
-  messageInput.focus();
-}
-
-function cancelReply() {
-  replyingTo = null;
-  replyBox.classList.remove("show");
-  replyBoxText.textContent = "";
-}
-
-function addEmoji(emoji) {
-  messageInput.value += emoji;
-  messageInput.focus();
-}
-
-  function sendMessage() {
-    const username = usernameInput.value.trim();
-    const message = messageInput.value.trim();
-
-    if (!username) {
-      statusText.textContent = "Bạn cần nhập tên trước.";
-      return;
     }
 
-    if (!message) {
-      statusText.textContent = "Bạn chưa nhập tin nhắn.";
-      return;
+    async function editMessage(messageId, oldMessage) {
+      const newMessage = prompt("Nhập nội dung mới:", oldMessage);
+
+      if (newMessage === null) {
+        return;
+      }
+
+      const trimmedMessage = newMessage.trim();
+
+      if (!trimmedMessage) {
+        statusText.textContent = "Tin nhắn không được để trống.";
+        return;
+      }
+
+      if (trimmedMessage.length > 500) {
+        statusText.textContent = "Tin nhắn quá dài.";
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/messages/" + messageId, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            username: usernameInput.value.trim(),
+            message: trimmedMessage
+          })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          statusText.textContent = data.message || "Sửa tin nhắn thất bại.";
+          return;
+        }
+
+        updateMessageOnScreen(data.updatedMessage);
+      } catch (error) {
+        statusText.textContent = "Không sửa được tin nhắn.";
+      }
     }
 
-    localStorage.setItem("chat_username", username);
+    function updateMessageOnScreen(item) {
+      const messageElement = document.querySelector('[data-message-id="' + item.id + '"]');
 
-   socket.emit("send_message", {
-  username: username,
-  message: message,
-  replyToId: replyingTo ? replyingTo.id : null,
-  replyToUsername: replyingTo ? replyingTo.username : null,
-  replyToMessage: replyingTo ? replyingTo.message : null
-});
+      if (!messageElement) {
+        return;
+      }
 
-socket.emit("stop_typing");
-cancelReply();
+      const bubble = messageElement.querySelector(".bubble");
 
-    messageInput.value = "";
-    statusText.textContent = "";
-  }
-async function editMessage(messageId, oldMessage) {
-  const newMessage = prompt("Nhập nội dung mới:", oldMessage);
+      if (bubble) {
+        bubble.innerHTML = escapeHTML(item.message);
+      }
 
-  if (newMessage === null) {
-    return;
-  }
+      let editedLabel = messageElement.querySelector(".edited-label");
 
-  const trimmedMessage = newMessage.trim();
+      if (!editedLabel) {
+        editedLabel = document.createElement("div");
+        editedLabel.className = "edited-label";
+        editedLabel.textContent = "Đã chỉnh sửa";
 
-  if (!trimmedMessage) {
-    statusText.textContent = "Tin nhắn không được để trống.";
-    return;
-  }
+        const messageContent = messageElement.querySelector(".message-content");
 
-  if (trimmedMessage.length > 500) {
-    statusText.textContent = "Tin nhắn quá dài.";
-    return;
-  }
+        if (messageContent) {
+          messageContent.appendChild(editedLabel);
+        }
+      }
+    }
 
-  try {
-    const response = await fetch("/api/messages/" + messageId, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        username: usernameInput.value.trim(),
-        message: trimmedMessage
-      })
+    async function deleteMessage(messageId) {
+      const confirmDelete = confirm("Bạn có chắc muốn xóa tin nhắn này không?");
+
+      if (!confirmDelete) {
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/messages/" + messageId, {
+          method: "DELETE"
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          statusText.textContent = data.message || "Xóa tin nhắn thất bại.";
+          return;
+        }
+
+        const messageElement = document.querySelector('[data-message-id="' + messageId + '"]');
+
+        if (messageElement) {
+          messageElement.remove();
+        }
+      } catch (error) {
+        statusText.textContent = "Không xóa được tin nhắn.";
+      }
+    }
+
+    function jumpToMessage(messageId) {
+      if (!messageId) {
+        return;
+      }
+
+      const target = document.querySelector('[data-message-id="' + messageId + '"]');
+
+      if (!target) {
+        statusText.textContent = "Tin nhắn gốc không còn trong danh sách hiện tại.";
+
+        setTimeout(function () {
+          statusText.textContent = "";
+        }, 2500);
+
+        return;
+      }
+
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
+      target.classList.add("jump-highlight");
+
+      setTimeout(function () {
+        target.classList.remove("jump-highlight");
+      }, 1300);
+    }
+
+    socket.on("receive_message", function (message) {
+      addMessage(message);
     });
 
-    const data = await response.json();
-
-    if (!data.success) {
-      statusText.textContent = data.message || "Sửa tin nhắn thất bại.";
-      return;
-    }
-
-    updateMessageOnScreen(data.updatedMessage);
-  } catch (error) {
-    statusText.textContent = "Không sửa được tin nhắn.";
-  }
-}
-
-function updateMessageOnScreen(item) {
-  const messageElement = document.querySelector('[data-message-id="' + item.id + '"]');
-
-  if (!messageElement) {
-    return;
-  }
-
-  const bubble = messageElement.querySelector(".bubble");
-
-  if (bubble) {
-    bubble.innerHTML = escapeHTML(item.message);
-  }
-
-  let editedLabel = messageElement.querySelector(".edited-label");
-
-  if (!editedLabel) {
-    editedLabel = document.createElement("div");
-    editedLabel.className = "edited-label";
-    editedLabel.textContent = "Đã chỉnh sửa";
-
-    const messageContent = messageElement.querySelector(".message-content");
-
-    if (messageContent) {
-      messageContent.appendChild(editedLabel);
-    }
-  }
-}
-
-async function deleteMessage(messageId) {
-  const confirmDelete = confirm("Bạn có chắc muốn xóa tin nhắn này không?");
-
-  if (!confirmDelete) {
-    return;
-  }
-
-  try {
-    const response = await fetch("/api/messages/" + messageId, {
-      method: "DELETE"
+    socket.on("user_typing", function (username) {
+      if (username && username !== usernameInput.value.trim()) {
+        typingText.textContent = username + " đang nhập...";
+      }
     });
 
-    const data = await response.json();
+    socket.on("user_stop_typing", function () {
+      typingText.textContent = "";
+    });
 
-    if (!data.success) {
-      statusText.textContent = data.message || "Xóa tin nhắn thất bại.";
-      return;
-    }
+    socket.on("delete_message", function (messageId) {
+      const messageElement = document.querySelector('[data-message-id="' + messageId + '"]');
 
-    const messageElement = document.querySelector('[data-message-id="' + messageId + '"]');
+      if (messageElement) {
+        messageElement.remove();
+      }
+    });
 
-    if (messageElement) {
-      messageElement.remove();
-    }
-  } catch (error) {
-    statusText.textContent = "Không xóa được tin nhắn.";
-  }
-}
+    socket.on("edit_message", function (updatedMessage) {
+      updateMessageOnScreen(updatedMessage);
+    });
 
-  socket.on("receive_message", function (message) {
-    addMessage(message);
-  });
-  socket.on("user_typing", function (username) {
-  if (username && username !== usernameInput.value.trim()) {
-    typingText.textContent = username + " đang nhập...";
-  }
-});
+    messageInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        sendMessage();
+        return;
+      }
 
-socket.on("user_stop_typing", function () {
-  typingText.textContent = "";
-});
+      socket.emit("typing", usernameInput.value.trim());
 
- socket.on("delete_message", function (messageId) {
-  const messageElement = document.querySelector('[data-message-id="' + messageId + '"]');
+      clearTimeout(typingTimer);
 
-  if (messageElement) {
-    messageElement.remove();
-  }
-});
+      typingTimer = setTimeout(function () {
+        socket.emit("stop_typing");
+      }, 1000);
+    });
 
-socket.on("edit_message", function (updatedMessage) {
-  updateMessageOnScreen(updatedMessage);
-});
-
-  messageInput.addEventListener("keydown", function (event) {
-  if (event.key === "Enter") {
-    sendMessage();
-    return;
-  }
-
-  socket.emit("typing", usernameInput.value.trim());
-
-  clearTimeout(typingTimer);
-
-  typingTimer = setTimeout(function () {
-    socket.emit("stop_typing");
-  }, 1000);
-});
-
- 
-
-  loadMessages();
-
-  function jumpToMessage(messageId) {
-  if (!messageId) {
-    return;
-  }
-
-  const target = document.querySelector('[data-message-id="' + messageId + '"]');
-
-  if (!target) {
-    statusText.textContent = "Tin nhắn gốc không còn trong danh sách hiện tại.";
-
-    setTimeout(function () {
-      statusText.textContent = "";
-    }, 2500);
-
-    return;
-  }
-
-  target.scrollIntoView({
-    behavior: "smooth",
-    block: "center"
-  });
-
-  target.classList.add("jump-highlight");
-
-  setTimeout(function () {
-    target.classList.remove("jump-highlight");
-  }, 1300);
-}
-</script>
+    loadMessages();
+  </script>
 </body>
 </html>
