@@ -1,1038 +1,1063 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>Phòng chat</title>
-
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background:
-        radial-gradient(circle at top left, rgba(124, 60, 255, 0.45), transparent 32%),
-        radial-gradient(circle at bottom right, rgba(0, 212, 255, 0.28), transparent 34%),
-        #070816;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-
-    .chat-page {
-      width: min(950px, 100%);
-      height: min(760px, 92vh);
-      border-radius: 30px;
-      overflow: hidden;
-      background: rgba(255,255,255,0.09);
-      border: 1px solid rgba(255,255,255,0.15);
-      backdrop-filter: blur(22px);
-      box-shadow: 0 30px 100px rgba(0,0,0,0.45);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .chat-header {
-      padding: 22px 24px;
-      border-bottom: 1px solid rgba(255,255,255,0.12);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .chat-header h1 {
-      margin: 0 0 6px;
-      font-size: 28px;
-    }
-
-    .chat-header p {
-      margin: 0;
-      color: #c7d2ff;
-      font-size: 14px;
-    }
-
-    .back-btn {
-      text-decoration: none;
-      color: white;
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.16);
-      padding: 12px 16px;
-      border-radius: 999px;
-      font-weight: bold;
-      white-space: nowrap;
-    }
-
-    .name-box {
-      padding: 14px 24px;
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.04);
-    }
-
-    .name-box label {
-      font-weight: bold;
-      color: #dce6ff;
-      white-space: nowrap;
-    }
-
-    .name-box input {
-      flex: 1;
-      padding: 12px 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.08);
-      color: white;
-      outline: none;
-      font-size: 15px;
-    }
-
-    .messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 22px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .message-row {
-      max-width: 75%;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .message-row.mine {
-      align-self: flex-end;
-      text-align: right;
-    }
-
-    .message-row.other {
-      align-self: flex-start;
-      text-align: left;
-    }
-
-    .message-meta {
-      font-size: 12px;
-      color: #b7c3e8;
-      margin-bottom: 5px;
-      padding: 0 6px;
-    }
-
-    .bubble {
-      padding: 13px 15px;
-      border-radius: 18px;
-      line-height: 1.55;
-      word-wrap: break-word;
-      white-space: pre-wrap;
-    }
-
-    .mine .bubble {
-      background: linear-gradient(135deg, #7c3cff, #00d4ff);
-      color: white;
-      border-bottom-right-radius: 6px;
-    }
-
-    .other .bubble {
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: #f5f7ff;
-      border-bottom-left-radius: 6px;
-    }
-
-    .status {
-      padding: 0 24px 14px;
-      color: #ffd6e8;
-      font-size: 14px;
-      min-height: 22px;
-    }
-
-    .chat-input-wrap {
-      position: relative;
-      border-top: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.05);
-    }
-
-    .chat-input {
-      padding: 18px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .chat-input input {
-      flex: 1;
-      padding: 15px 16px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.08);
-      color: white;
-      outline: none;
-      font-size: 16px;
-      min-width: 0;
-    }
-
-    .chat-input button {
-      border: none;
-      padding: 0 24px;
-      border-radius: 18px;
-      background: linear-gradient(135deg, #7c3cff, #00d4ff);
-      color: white;
-      font-weight: 900;
-      font-size: 15px;
-      cursor: pointer;
-      box-shadow: 0 14px 35px rgba(0,212,255,0.22);
-    }
-
-    .send-btn {
-      height: 54px;
-    }
-
-    input::placeholder {
-      color: rgba(255,255,255,0.5);
-    }
-
-    .message-line {
-      display: flex;
-      align-items: flex-end;
-      gap: 10px;
-    }
-
-    .message-row.mine .message-line {
-      flex-direction: row-reverse;
-    }
-
-    .avatar {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      flex-shrink: 0;
-      font-weight: 900;
-      color: white;
-      background: linear-gradient(135deg, #7c3cff, #00d4ff);
-      box-shadow: 0 8px 24px rgba(0, 212, 255, 0.25);
-    }
-
-    .message-content {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .message-row.mine .message-content {
-      align-items: flex-end;
-    }
-
-    .message-tools {
-      margin-top: 5px;
-    }
-
-    .delete-message-btn {
-      border: none;
-      background: rgba(255, 80, 120, 0.18);
-      color: #ffd6e1;
-      border: 1px solid rgba(255, 120, 160, 0.25);
-      padding: 5px 9px;
-      border-radius: 999px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .delete-message-btn:hover {
-      background: rgba(255, 80, 120, 0.32);
-    }
-
-    .edit-message-btn {
-      border: none;
-      background: rgba(0, 212, 255, 0.18);
-      color: #d6f8ff;
-      border: 1px solid rgba(0, 212, 255, 0.28);
-      padding: 5px 9px;
-      border-radius: 999px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: 0.2s;
-      margin-right: 6px;
-    }
-
-    .edit-message-btn:hover {
-      background: rgba(0, 212, 255, 0.32);
-    }
-
-    .edited-label {
-      font-size: 11px;
-      color: #b7c3e8;
-      margin-top: 4px;
-      opacity: 0.8;
-    }
-
-    .reply-preview {
-      margin-bottom: 8px;
-      padding: 9px 11px;
-      border-left: 3px solid #00d4ff;
-      background: rgba(0, 212, 255, 0.12);
-      border-radius: 12px;
-      color: #dff8ff;
-      font-size: 13px;
-      line-height: 1.4;
-      cursor: pointer;
-    }
-
-    .reply-preview strong {
-      color: #8eeaff;
-    }
-
-    .reply-box {
-      display: none;
-      margin: 0 18px 10px;
-      padding: 12px 14px;
-      border-radius: 16px;
-      background: rgba(0, 212, 255, 0.12);
-      border: 1px solid rgba(0, 212, 255, 0.22);
-      color: white;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .reply-box.show {
-      display: flex;
-    }
-
-    .reply-box-text {
-      font-size: 14px;
-      line-height: 1.4;
-      color: #dff8ff;
-    }
-
-    .reply-box button {
-      border: none;
-      background: rgba(255,255,255,0.12);
-      color: white;
-      width: 30px;
-      height: 30px;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-
-    .reply-message-btn {
-      border: none;
-      background: rgba(255, 255, 255, 0.12);
-      color: #eaf6ff;
-      border: 1px solid rgba(255,255,255,0.18);
-      padding: 5px 9px;
-      border-radius: 999px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: 0.2s;
-      margin-right: 6px;
-    }
-
-    .reply-message-btn:hover {
-      background: rgba(255,255,255,0.22);
-    }
-
-    .date-separator {
-      align-self: center;
-      margin: 14px 0;
-      padding: 7px 14px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      color: #dce6ff;
-      font-size: 13px;
-      font-weight: bold;
-    }
-
-    .emoji-toggle-btn {
-      width: 46px;
-      height: 46px;
-      padding: 0 !important;
-      border-radius: 15px !important;
-      border: 1px solid rgba(255,255,255,0.14) !important;
-      background: rgba(255,255,255,0.10) !important;
-      color: white !important;
-      font-size: 21px !important;
-      cursor: pointer;
-      box-shadow: none !important;
-      flex-shrink: 0;
-      display: grid;
-      place-items: center;
-      transition: 0.2s;
-    }
-
-    .emoji-toggle-btn:hover {
-      transform: translateY(-1px);
-      background: rgba(255,255,255,0.18) !important;
-    }
-
-    .emoji-toggle-btn.active {
-      background: rgba(124, 60, 255, 0.30) !important;
-      border-color: rgba(0, 212, 255, 0.35) !important;
-    }
-
-    .emoji-picker {
-      display: none;
-      position: absolute;
-      right: 118px;
-      bottom: 82px;
-      padding: 11px;
-      gap: 8px;
-      flex-wrap: wrap;
-      max-width: 330px;
-      border-radius: 18px;
-      background: rgba(30, 31, 50, 0.96);
-      border: 1px solid rgba(255,255,255,0.12);
-      box-shadow: 0 20px 45px rgba(0,0,0,0.35);
-      z-index: 50;
-      backdrop-filter: blur(18px);
-    }
-
-    .emoji-picker.show {
-      display: flex;
-    }
-
-    .emoji-btn {
-      border: none;
-      width: 38px;
-      height: 38px;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      cursor: pointer;
-      font-size: 20px;
-      transition: 0.2s;
-      padding: 0;
-      box-shadow: none;
-    }
-
-    .emoji-btn:hover {
-      transform: translateY(-2px) scale(1.05);
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    #typingText {
-      margin-top: 4px;
-      color: #ffd6f1;
-      font-style: italic;
-      min-height: 18px;
-    }
-
-    .message-row.jump-highlight .bubble {
-      animation: jumpFlash 1.2s ease;
-      outline: 2px solid rgba(0, 212, 255, 0.8);
-      box-shadow: 0 0 28px rgba(0, 212, 255, 0.45);
-    }
-
-    @keyframes jumpFlash {
-      0% {
-        transform: scale(1);
-      }
-
-      35% {
-        transform: scale(1.04);
-      }
-
-      100% {
-        transform: scale(1);
-      }
-    }
-
-    @media (max-width: 700px) {
-      body {
-        padding: 0;
-      }
-
-      .chat-page {
-        height: 100vh;
-        border-radius: 0;
-      }
-
-      .chat-header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .name-box {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .message-row {
-        max-width: 88%;
-      }
-
-      .chat-input {
-        gap: 8px;
-      }
-
-      .chat-input input {
-        padding: 14px;
-      }
-
-      .chat-input button {
-        padding: 14px;
-      }
-
-      .emoji-toggle-btn {
-        width: 44px;
-        height: 44px;
-        font-size: 20px !important;
-      }
-
-      .send-btn {
-        height: 44px;
-      }
-
-      .emoji-picker {
-        right: 86px;
-        bottom: 76px;
-        max-width: 260px;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <div class="chat-page">
-    <div class="chat-header">
-      <div>
-        <h1>Phòng chat 💬</h1>
-        <p>Chat realtime giữa các người dùng, tin nhắn hiện ngay lập tức.</p>
-        <p id="typingText"></p>
-      </div>
-
-      <a href="/welcome.html" class="back-btn">Trang chủ</a>
-    </div>
-
-    <div class="name-box">
-      <label for="usernameInput">Tên của bạn:</label>
-      <input id="usernameInput" placeholder="Tên sẽ tự lấy từ tài khoản đăng nhập" readonly />
-    </div>
-
-    <div class="messages" id="messages"></div>
-
-    <div class="status" id="statusText"></div>
-
-    <div class="reply-box" id="replyBox">
-      <div class="reply-box-text" id="replyBoxText"></div>
-      <button onclick="cancelReply()">×</button>
-    </div>
-
-    <div class="chat-input-wrap">
-      <div id="emojiPicker" class="emoji-picker">
-        <button class="emoji-btn" onclick="addEmoji('❤️')">❤️</button>
-        <button class="emoji-btn" onclick="addEmoji('😂')">😂</button>
-        <button class="emoji-btn" onclick="addEmoji('🥰')">🥰</button>
-        <button class="emoji-btn" onclick="addEmoji('😴')">😴</button>
-        <button class="emoji-btn" onclick="addEmoji('😭')">😭</button>
-        <button class="emoji-btn" onclick="addEmoji('👍')">👍</button>
-        <button class="emoji-btn" onclick="addEmoji('🌙')">🌙</button>
-        <button class="emoji-btn" onclick="addEmoji('✨')">✨</button>
-      </div>
-
-      <div class="chat-input">
-        <input id="messageInput" placeholder="Nhập tin nhắn..." />
-        <button type="button" id="emojiToggleBtn" class="emoji-toggle-btn">😊</button>
-        <button class="send-btn" onclick="sendMessage()">Gửi</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="/socket.io/socket.io.js"></script>
-
-  <script>
-    const socket = io();
-
-    const usernameInput = document.getElementById("usernameInput");
-    const messageInput = document.getElementById("messageInput");
-    const messagesBox = document.getElementById("messages");
-    const statusText = document.getElementById("statusText");
-    const typingText = document.getElementById("typingText");
-    const replyBox = document.getElementById("replyBox");
-    const replyBoxText = document.getElementById("replyBoxText");
-    const emojiToggleBtn = document.getElementById("emojiToggleBtn");
-    const emojiPicker = document.getElementById("emojiPicker");
-
-    let typingTimer = null;
-    let replyingTo = null;
-
-    const savedUser = localStorage.getItem("currentUser");
-
-    if (!savedUser) {
-      alert("Bạn cần đăng nhập trước khi vào phòng chat.");
-      window.location.href = "/";
-    } else {
-      try {
-        const user = JSON.parse(savedUser);
-
-        if (user.name) {
-          usernameInput.value = user.name;
-        } else if (user.email) {
-          usernameInput.value = user.email;
-        } else {
-          alert("Không lấy được tên người dùng. Hãy đăng nhập lại.");
-          window.location.href = "/";
-        }
-      } catch (error) {
-        alert("Phiên đăng nhập bị lỗi. Hãy đăng nhập lại.");
-        window.location.href = "/";
-      }
-    }
-
-    function formatTime(dateText) {
-      const date = new Date(dateText);
-
-      if (isNaN(date.getTime())) {
-        return "";
-      }
-
-      const h = date.getHours().toString().padStart(2, "0");
-      const m = date.getMinutes().toString().padStart(2, "0");
-
-      return h + ":" + m;
-    }
-
-    function getDateKey(dateText) {
-      const date = new Date(dateText);
-
-      if (isNaN(date.getTime())) {
-        return "";
-      }
-
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, "0");
-      const d = String(date.getDate()).padStart(2, "0");
-
-      return y + "-" + m + "-" + d;
-    }
-
-    function formatDateSeparator(dateText) {
-      const date = new Date(dateText);
-
-      if (isNaN(date.getTime())) {
-        return "";
-      }
-
-      const today = new Date();
-      const yesterday = new Date();
-      yesterday.setDate(today.getDate() - 1);
-
-      const dateKey = getDateKey(date);
-      const todayKey = getDateKey(today);
-      const yesterdayKey = getDateKey(yesterday);
-
-      if (dateKey === todayKey) {
-        return "Hôm nay";
-      }
-
-      if (dateKey === yesterdayKey) {
-        return "Hôm qua";
-      }
-
-      const d = String(date.getDate()).padStart(2, "0");
-      const m = String(date.getMonth() + 1).padStart(2, "0");
-      const y = date.getFullYear();
-
-      return d + "/" + m + "/" + y;
-    }
-
-    function escapeHTML(text) {
-      return String(text || "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    function getAvatarLetter(name) {
-      if (!name || name.trim() === "") {
-        return "?";
-      }
-
-      return name.trim().charAt(0).toUpperCase();
-    }
-
-    function addMessage(item) {
-      const myName = usernameInput.value.trim();
-      const isMine = myName && item.username === myName;
-
-      const row = document.createElement("div");
-      row.className = "message-row " + (isMine ? "mine" : "other");
-      row.dataset.messageId = item.id;
-
-      const line = document.createElement("div");
-      line.className = "message-line";
-
-      const avatar = document.createElement("div");
-      avatar.className = "avatar";
-      avatar.textContent = getAvatarLetter(item.username);
-
-      const content = document.createElement("div");
-      content.className = "message-content";
-
-      const meta = document.createElement("div");
-      meta.className = "message-meta";
-      meta.textContent = item.username + " • " + formatTime(item.created_at);
-
-      content.appendChild(meta);
-
-      if (item.reply_to_message) {
-        const replyPreview = document.createElement("div");
-        replyPreview.className = "reply-preview";
-        replyPreview.title = "Bấm để tới tin nhắn gốc";
-
-        replyPreview.innerHTML =
-          "<strong>" +
-          escapeHTML(item.reply_to_username || "Người dùng") +
-          "</strong><br>" +
-          escapeHTML(item.reply_to_message);
-
-        replyPreview.onclick = function () {
-          jumpToMessage(item.reply_to_id);
-        };
-
-        content.appendChild(replyPreview);
-      }
-
-      const bubble = document.createElement("div");
-      bubble.className = "bubble";
-      bubble.innerHTML = escapeHTML(item.message);
-
-      content.appendChild(bubble);
-
-      const tools = document.createElement("div");
-      tools.className = "message-tools";
-
-      const replyBtn = document.createElement("button");
-      replyBtn.className = "reply-message-btn";
-      replyBtn.textContent = "↪";
-      replyBtn.onclick = function () {
-        startReply(item);
-      };
-
-      tools.appendChild(replyBtn);
-
-      if (isMine) {
-        const editBtn = document.createElement("button");
-        editBtn.className = "edit-message-btn";
-        editBtn.textContent = "✏️";
-        editBtn.onclick = function () {
-          editMessage(item.id, item.message);
-        };
-
-        const deleteBtn = document.createElement("button");
-        deleteBtn.className = "delete-message-btn";
-        deleteBtn.textContent = "🗑️";
-        deleteBtn.onclick = function () {
-          deleteMessage(item.id);
-        };
-
-        tools.appendChild(editBtn);
-        tools.appendChild(deleteBtn);
-      }
-
-      content.appendChild(tools);
-      line.appendChild(avatar);
-      line.appendChild(content);
-      row.appendChild(line);
-
-      messagesBox.appendChild(row);
-      messagesBox.scrollTop = messagesBox.scrollHeight;
-    }
-
-    async function loadMessages() {
-      try {
-        const response = await fetch("/api/messages");
-        const data = await response.json();
-
-        if (!data.success) {
-          statusText.textContent = data.message || "Không lấy được tin nhắn.";
-          return;
-        }
-
-        messagesBox.innerHTML = "";
-
-        let lastDateKey = "";
-
-        data.messages.forEach(function (item) {
-          const currentDateKey = getDateKey(item.created_at);
-
-          if (currentDateKey !== lastDateKey) {
-            const separator = document.createElement("div");
-            separator.className = "date-separator";
-            separator.textContent = formatDateSeparator(item.created_at);
-
-            messagesBox.appendChild(separator);
-            lastDateKey = currentDateKey;
-          }
-
-          addMessage(item);
-        });
-
-        statusText.textContent = "";
-      } catch (error) {
-        statusText.textContent = "Không kết nối được server chat.";
-      }
-    }
-
-    function startReply(item) {
-      replyingTo = {
-        id: item.id,
-        username: item.username,
-        message: item.message
-      };
-
-      replyBoxText.innerHTML =
-        "Đang trả lời <strong>" +
-        escapeHTML(item.username) +
-        "</strong>: " +
-        escapeHTML(item.message);
-
-      replyBox.classList.add("show");
-      messageInput.focus();
-    }
-
-    function cancelReply() {
-      replyingTo = null;
-      replyBox.classList.remove("show");
-      replyBoxText.textContent = "";
-    }
-
-   function addEmoji(emoji) {
-  messageInput.value += emoji;
-  messageInput.focus();
-}
-    emojiToggleBtn.addEventListener("click", function (event) {
-      event.stopPropagation();
-      emojiPicker.classList.toggle("show");
-      emojiToggleBtn.classList.toggle("active");
-    });
-
-    emojiPicker.addEventListener("click", function (event) {
-      event.stopPropagation();
-    });
-
-    document.addEventListener("click", function () {
-      emojiPicker.classList.remove("show");
-      emojiToggleBtn.classList.remove("active");
-    });
-
-    function sendMessage() {
-      const username = usernameInput.value.trim();
-      const message = messageInput.value.trim();
-
-      if (!username) {
-        statusText.textContent = "Bạn cần nhập tên trước.";
-        return;
-      }
-
-      if (!message) {
-        statusText.textContent = "Bạn chưa nhập tin nhắn.";
-        return;
-      }
-
-      localStorage.setItem("chat_username", username);
-
-      socket.emit("send_message", {
-        username: username,
-        message: message,
-        replyToId: replyingTo ? replyingTo.id : null,
-        replyToUsername: replyingTo ? replyingTo.username : null,
-        replyToMessage: replyingTo ? replyingTo.message : null
+const express = require("express");
+const path = require("path");
+const http = require("http");
+const { Server } = require("socket.io");
+const { Pool } = require("pg");
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+});
+
+pool.connect()
+  .then(function () {
+    console.log("Đã kết nối database Postgres");
+  })
+  .catch(function (err) {
+    console.error("Lỗi kết nối Postgres:", err.message);
+  });
+
+/* =========================
+   DATABASE TABLES
+========================= */
+
+pool.query(`
+  CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL
+  )
+`).catch(function (err) {
+  console.error("Lỗi tạo bảng users:", err.message);
+});
+
+pool.query(`
+  CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    username TEXT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`).catch(function (err) {
+  console.error("Lỗi tạo bảng messages:", err.message);
+});
+
+pool.query(`
+  ALTER TABLE messages
+  ADD COLUMN IF NOT EXISTS reply_to_id INTEGER
+`).catch(function (err) {
+  console.error("Lỗi thêm cột reply_to_id:", err.message);
+});
+
+pool.query(`
+  ALTER TABLE messages
+  ADD COLUMN IF NOT EXISTS reply_to_username TEXT
+`).catch(function (err) {
+  console.error("Lỗi thêm cột reply_to_username:", err.message);
+});
+
+pool.query(`
+  ALTER TABLE messages
+  ADD COLUMN IF NOT EXISTS reply_to_message TEXT
+`).catch(function (err) {
+  console.error("Lỗi thêm cột reply_to_message:", err.message);
+});
+
+pool.query(`
+  CREATE TABLE IF NOT EXISTS conversations (
+    id SERIAL PRIMARY KEY,
+    user1_email TEXT NOT NULL,
+    user2_email TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user1_email, user2_email)
+  )
+`).catch(function (err) {
+  console.error("Lỗi tạo bảng conversations:", err.message);
+});
+
+pool.query(`
+  CREATE TABLE IF NOT EXISTS private_messages (
+    id SERIAL PRIMARY KEY,
+    conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+    sender_email TEXT NOT NULL,
+    sender_name TEXT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`).catch(function (err) {
+  console.error("Lỗi tạo bảng private_messages:", err.message);
+});
+
+pool.query(`
+  ALTER TABLE private_messages
+  ADD COLUMN IF NOT EXISTS reply_to_id INTEGER
+`).catch(function (err) {
+  console.error("Lỗi thêm cột private reply_to_id:", err.message);
+});
+
+pool.query(`
+  ALTER TABLE private_messages
+  ADD COLUMN IF NOT EXISTS reply_to_sender_name TEXT
+`).catch(function (err) {
+  console.error("Lỗi thêm cột private reply_to_sender_name:", err.message);
+});
+
+pool.query(`
+  ALTER TABLE private_messages
+  ADD COLUMN IF NOT EXISTS reply_to_message TEXT
+`).catch(function (err) {
+  console.error("Lỗi thêm cột private reply_to_message:", err.message);
+});
+
+/* =========================
+   BASIC API
+========================= */
+
+app.get("/api", function (req, res) {
+  res.json({
+    success: true,
+    message: "Backend API đang chạy!"
+  });
+});
+
+/* =========================
+   AUTH / USER API
+========================= */
+
+app.post("/register", async function (req, res) {
+  try {
+    const name = req.body.name ? req.body.name.trim() : "";
+    const email = req.body.email ? req.body.email.trim() : "";
+    const password = req.body.password ? req.body.password.trim() : "";
+    const confirmPassword = req.body.confirmPassword ? req.body.confirmPassword.trim() : "";
+
+    if (!name || !email || !password || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng nhập đầy đủ thông tin"
       });
-
-      socket.emit("stop_typing");
-      cancelReply();
-
-      messageInput.value = "";
-      statusText.textContent = "";
     }
 
-    async function editMessage(messageId, oldMessage) {
-      const newMessage = prompt("Nhập nội dung mới:", oldMessage);
-
-      if (newMessage === null) {
-        return;
-      }
-
-      const trimmedMessage = newMessage.trim();
-
-      if (!trimmedMessage) {
-        statusText.textContent = "Tin nhắn không được để trống.";
-        return;
-      }
-
-      if (trimmedMessage.length > 500) {
-        statusText.textContent = "Tin nhắn quá dài.";
-        return;
-      }
-
-      try {
-        const response = await fetch("/api/messages/" + messageId, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            username: usernameInput.value.trim(),
-            message: trimmedMessage
-          })
-        });
-
-        const data = await response.json();
-
-        if (!data.success) {
-          statusText.textContent = data.message || "Sửa tin nhắn thất bại.";
-          return;
-        }
-
-        updateMessageOnScreen(data.updatedMessage);
-      } catch (error) {
-        statusText.textContent = "Không sửa được tin nhắn.";
-      }
-    }
-
-    function updateMessageOnScreen(item) {
-      const messageElement = document.querySelector('[data-message-id="' + item.id + '"]');
-
-      if (!messageElement) {
-        return;
-      }
-
-      const bubble = messageElement.querySelector(".bubble");
-
-      if (bubble) {
-        bubble.innerHTML = escapeHTML(item.message);
-      }
-
-      let editedLabel = messageElement.querySelector(".edited-label");
-
-      if (!editedLabel) {
-        editedLabel = document.createElement("div");
-        editedLabel.className = "edited-label";
-        editedLabel.textContent = "Đã chỉnh sửa";
-
-        const messageContent = messageElement.querySelector(".message-content");
-
-        if (messageContent) {
-          messageContent.appendChild(editedLabel);
-        }
-      }
-    }
-
-    async function deleteMessage(messageId) {
-      const confirmDelete = confirm("Bạn có chắc muốn xóa tin nhắn này không?");
-
-      if (!confirmDelete) {
-        return;
-      }
-
-      try {
-        const response = await fetch("/api/messages/" + messageId, {
-          method: "DELETE"
-        });
-
-        const data = await response.json();
-
-        if (!data.success) {
-          statusText.textContent = data.message || "Xóa tin nhắn thất bại.";
-          return;
-        }
-
-        const messageElement = document.querySelector('[data-message-id="' + messageId + '"]');
-
-        if (messageElement) {
-          messageElement.remove();
-        }
-      } catch (error) {
-        statusText.textContent = "Không xóa được tin nhắn.";
-      }
-    }
-
-    socket.on("receive_message", function (message) {
-      addMessage(message);
-    });
-
-    socket.on("user_typing", function (username) {
-      if (username && username !== usernameInput.value.trim()) {
-        typingText.textContent = username + " đang nhập...";
-      }
-    });
-
-    socket.on("user_stop_typing", function () {
-      typingText.textContent = "";
-    });
-
-    socket.on("delete_message", function (messageId) {
-      const messageElement = document.querySelector('[data-message-id="' + messageId + '"]');
-
-      if (messageElement) {
-        messageElement.remove();
-      }
-    });
-
-    socket.on("edit_message", function (updatedMessage) {
-      updateMessageOnScreen(updatedMessage);
-    });
-
-    messageInput.addEventListener("keydown", function (event) {
-      if (event.key === "Enter") {
-        sendMessage();
-        return;
-      }
-
-      socket.emit("typing", usernameInput.value.trim());
-
-      clearTimeout(typingTimer);
-
-      typingTimer = setTimeout(function () {
-        socket.emit("stop_typing");
-      }, 1000);
-    });
-
-    function jumpToMessage(messageId) {
-      if (!messageId) {
-        return;
-      }
-
-      const target = document.querySelector('[data-message-id="' + messageId + '"]');
-
-      if (!target) {
-        statusText.textContent = "Tin nhắn gốc không còn trong danh sách hiện tại.";
-
-        setTimeout(function () {
-          statusText.textContent = "";
-        }, 2500);
-
-        return;
-      }
-
-      target.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
+    if (password.length < 4) {
+      return res.status(400).json({
+        success: false,
+        message: "Mật khẩu phải có ít nhất 4 ký tự"
       });
-
-      target.classList.add("jump-highlight");
-
-      setTimeout(function () {
-        target.classList.remove("jump-highlight");
-      }, 1300);
     }
 
-    loadMessages();
-  </script>
-</body>
-</html>
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Mật khẩu xác nhận không khớp"
+      });
+    }
+
+    const checkResult = await pool.query(
+      "SELECT id FROM users WHERE email = $1",
+      [email]
+    );
+
+    if (checkResult.rows.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: "Email này đã được đăng ký"
+      });
+    }
+
+    const insertResult = await pool.query(
+      `
+      INSERT INTO users (name, email, password)
+      VALUES ($1, $2, $3)
+      RETURNING id, name, email
+      `,
+      [name, email, password]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Đăng ký tài khoản thành công",
+      user: insertResult.rows[0]
+    });
+  } catch (err) {
+    console.error("Lỗi đăng ký:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi tạo tài khoản"
+    });
+  }
+});
+
+app.post("/login", async function (req, res) {
+  try {
+    const email = req.body.email ? req.body.email.trim() : "";
+    const password = req.body.password ? req.body.password.trim() : "";
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng nhập email và mật khẩu"
+      });
+    }
+
+    const result = await pool.query(
+      "SELECT * FROM users WHERE email = $1 AND password = $2",
+      [email, password]
+    );
+
+    const user = result.rows[0];
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Sai email hoặc mật khẩu"
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Đăng nhập thành công",
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email
+      }
+    });
+  } catch (err) {
+    console.error("Lỗi đăng nhập:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi đăng nhập"
+    });
+  }
+});
+
+app.put("/update-profile", async function (req, res) {
+  try {
+    const oldEmail = req.body.oldEmail ? req.body.oldEmail.trim() : "";
+    const newName = req.body.name ? req.body.name.trim() : "";
+    const newEmail = req.body.email ? req.body.email.trim() : "";
+
+    if (!oldEmail || !newName || !newEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng nhập đầy đủ thông tin"
+      });
+    }
+
+    const findResult = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [oldEmail]
+    );
+
+    const user = findResult.rows[0];
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy tài khoản"
+      });
+    }
+
+    const checkEmailResult = await pool.query(
+      "SELECT * FROM users WHERE email = $1 AND email != $2",
+      [newEmail, oldEmail]
+    );
+
+    if (checkEmailResult.rows.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: "Email mới đã được người khác sử dụng"
+      });
+    }
+
+    const updateResult = await pool.query(
+      `
+      UPDATE users
+      SET name = $1, email = $2
+      WHERE email = $3
+      RETURNING id, name, email
+      `,
+      [newName, newEmail, oldEmail]
+    );
+
+    res.json({
+      success: true,
+      message: "Cập nhật thông tin thành công",
+      user: updateResult.rows[0]
+    });
+  } catch (err) {
+    console.error("Lỗi cập nhật profile:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi cập nhật thông tin"
+    });
+  }
+});
+
+app.put("/change-password", async function (req, res) {
+  try {
+    const email = req.body.email ? req.body.email.trim() : "";
+    const oldPassword = req.body.oldPassword ? req.body.oldPassword.trim() : "";
+    const newPassword = req.body.newPassword ? req.body.newPassword.trim() : "";
+    const confirmNewPassword = req.body.confirmNewPassword ? req.body.confirmNewPassword.trim() : "";
+
+    if (!email || !oldPassword || !newPassword || !confirmNewPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng nhập đầy đủ thông tin"
+      });
+    }
+
+    if (newPassword.length < 4) {
+      return res.status(400).json({
+        success: false,
+        message: "Mật khẩu mới phải có ít nhất 4 ký tự"
+      });
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Mật khẩu mới nhập lại không khớp"
+      });
+    }
+
+    const findResult = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
+
+    const user = findResult.rows[0];
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy tài khoản"
+      });
+    }
+
+    if (user.password !== oldPassword) {
+      return res.status(401).json({
+        success: false,
+        message: "Mật khẩu cũ không đúng"
+      });
+    }
+
+    await pool.query(
+      "UPDATE users SET password = $1 WHERE email = $2",
+      [newPassword, email]
+    );
+
+    res.json({
+      success: true,
+      message: "Đổi mật khẩu thành công"
+    });
+  } catch (err) {
+    console.error("Lỗi đổi mật khẩu:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi đổi mật khẩu"
+    });
+  }
+});
+
+app.get("/users", async function (req, res) {
+  try {
+    const result = await pool.query(
+      "SELECT id, name, email FROM users ORDER BY id ASC"
+    );
+
+    res.json({
+      success: true,
+      message: "Lấy danh sách user thành công",
+      users: result.rows
+    });
+  } catch (err) {
+    console.error("Lỗi lấy users:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi lấy danh sách user"
+    });
+  }
+});
+
+app.delete("/users/:id", async function (req, res) {
+  try {
+    const userId = req.params.id;
+
+    const findResult = await pool.query(
+      "SELECT * FROM users WHERE id = $1",
+      [userId]
+    );
+
+    const user = findResult.rows[0];
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy user"
+      });
+    }
+
+    await pool.query(
+      "DELETE FROM users WHERE id = $1",
+      [userId]
+    );
+
+    res.json({
+      success: true,
+      message: "Xóa user thành công"
+    });
+  } catch (err) {
+    console.error("Lỗi xóa user:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi xóa user"
+    });
+  }
+});
+
+app.delete("/delete-account", async function (req, res) {
+  try {
+    const email = req.body.email ? req.body.email.trim() : "";
+    const password = req.body.password ? req.body.password.trim() : "";
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng nhập đầy đủ email và mật khẩu"
+      });
+    }
+
+    const findResult = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
+
+    const user = findResult.rows[0];
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy tài khoản"
+      });
+    }
+
+    if (user.password !== password) {
+      return res.status(401).json({
+        success: false,
+        message: "Mật khẩu không đúng"
+      });
+    }
+
+    await pool.query(
+      "DELETE FROM users WHERE email = $1",
+      [email]
+    );
+
+    res.json({
+      success: true,
+      message: "Xóa tài khoản thành công"
+    });
+  } catch (err) {
+    console.error("Lỗi xóa tài khoản:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi xóa tài khoản"
+    });
+  }
+});
+
+/* =========================
+   PUBLIC ROOM CHAT API
+========================= */
+
+app.get("/api/messages", async function (req, res) {
+  try {
+    const result = await pool.query(
+      `
+      SELECT id, username, message, created_at,
+             reply_to_id, reply_to_username, reply_to_message
+      FROM messages
+      ORDER BY id ASC
+      LIMIT 300
+      `
+    );
+
+    res.json({
+      success: true,
+      messages: result.rows
+    });
+  } catch (err) {
+    console.error("Lỗi lấy tin nhắn:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy tin nhắn."
+    });
+  }
+});
+
+app.post("/api/messages", async function (req, res) {
+  try {
+    const username = req.body.username ? req.body.username.trim() : "";
+    const message = req.body.message ? req.body.message.trim() : "";
+    const replyToId = req.body.replyToId || null;
+    const replyToUsername = req.body.replyToUsername || null;
+    const replyToMessage = req.body.replyToMessage || null;
+
+    if (!username || !message) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu tên người dùng hoặc tin nhắn."
+      });
+    }
+
+    if (message.length > 500) {
+      return res.status(400).json({
+        success: false,
+        message: "Tin nhắn quá dài."
+      });
+    }
+
+    const result = await pool.query(
+      `
+      INSERT INTO messages
+      (username, message, reply_to_id, reply_to_username, reply_to_message)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id, username, message, created_at,
+                reply_to_id, reply_to_username, reply_to_message
+      `,
+      [username, message, replyToId, replyToUsername, replyToMessage]
+    );
+
+    const newMessage = result.rows[0];
+
+    io.emit("receive_message", newMessage);
+
+    res.json({
+      success: true,
+      message: "Đã gửi tin nhắn.",
+      newMessage: newMessage
+    });
+  } catch (err) {
+    console.error("Lỗi gửi tin nhắn:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi gửi tin nhắn."
+    });
+  }
+});
+
+app.delete("/api/messages/:id", async function (req, res) {
+  try {
+    const messageId = req.params.id;
+
+    if (!messageId) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu ID tin nhắn."
+      });
+    }
+
+    const result = await pool.query(
+      "DELETE FROM messages WHERE id = $1 RETURNING id",
+      [messageId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy tin nhắn."
+      });
+    }
+
+    io.emit("delete_message", Number(messageId));
+
+    res.json({
+      success: true,
+      message: "Đã xóa tin nhắn."
+    });
+  } catch (err) {
+    console.error("Lỗi xóa tin nhắn:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi xóa tin nhắn."
+    });
+  }
+});
+
+app.put("/api/messages/:id", async function (req, res) {
+  try {
+    const messageId = req.params.id;
+    const username = req.body.username ? req.body.username.trim() : "";
+    const message = req.body.message ? req.body.message.trim() : "";
+
+    if (!messageId || !username || !message) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu ID, tên người dùng hoặc nội dung tin nhắn."
+      });
+    }
+
+    if (message.length > 500) {
+      return res.status(400).json({
+        success: false,
+        message: "Tin nhắn quá dài."
+      });
+    }
+
+    const result = await pool.query(
+      `
+      UPDATE messages
+      SET message = $1
+      WHERE id = $2 AND username = $3
+      RETURNING id, username, message, created_at,
+                reply_to_id, reply_to_username, reply_to_message
+      `,
+      [message, messageId, username]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: "Bạn chỉ được sửa tin nhắn của chính mình."
+      });
+    }
+
+    const updatedMessage = result.rows[0];
+
+    io.emit("edit_message", updatedMessage);
+
+    res.json({
+      success: true,
+      message: "Đã sửa tin nhắn.",
+      updatedMessage: updatedMessage
+    });
+  } catch (err) {
+    console.error("Lỗi sửa tin nhắn:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi sửa tin nhắn."
+    });
+  }
+});
+
+/* =========================
+   PRIVATE 1V1 CHAT API
+========================= */
+
+app.get("/api/chat-users", async function (req, res) {
+  try {
+    const currentEmail = req.query.email ? req.query.email.trim() : "";
+
+    if (!currentEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu email người dùng hiện tại."
+      });
+    }
+
+    const result = await pool.query(
+      "SELECT id, name, email FROM users WHERE email != $1 ORDER BY name ASC",
+      [currentEmail]
+    );
+
+    res.json({
+      success: true,
+      users: result.rows
+    });
+  } catch (err) {
+    console.error("Lỗi lấy danh sách chat users:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi lấy danh sách người dùng."
+    });
+  }
+});
+
+app.post("/api/conversation", async function (req, res) {
+  try {
+    const currentEmail = req.body.currentEmail ? req.body.currentEmail.trim() : "";
+    const otherEmail = req.body.otherEmail ? req.body.otherEmail.trim() : "";
+
+    if (!currentEmail || !otherEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu email người dùng."
+      });
+    }
+
+    if (currentEmail === otherEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "Không thể tự nhắn với chính mình."
+      });
+    }
+
+    const checkUsers = await pool.query(
+      "SELECT id, name, email FROM users WHERE email = $1 OR email = $2",
+      [currentEmail, otherEmail]
+    );
+
+    if (checkUsers.rows.length < 2) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy đủ 2 người dùng."
+      });
+    }
+
+    const sortedEmails = [currentEmail, otherEmail].sort();
+    const user1Email = sortedEmails[0];
+    const user2Email = sortedEmails[1];
+
+    const conversationResult = await pool.query(
+      `
+      INSERT INTO conversations (user1_email, user2_email)
+      VALUES ($1, $2)
+      ON CONFLICT (user1_email, user2_email)
+      DO UPDATE SET user1_email = EXCLUDED.user1_email
+      RETURNING id, user1_email, user2_email, created_at
+      `,
+      [user1Email, user2Email]
+    );
+
+    res.json({
+      success: true,
+      conversation: conversationResult.rows[0]
+    });
+  } catch (err) {
+    console.error("Lỗi tạo/lấy conversation:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi tạo cuộc trò chuyện."
+    });
+  }
+});
+
+app.get("/api/private-messages/:conversationId", async function (req, res) {
+  try {
+    const conversationId = req.params.conversationId;
+    const email = req.query.email ? req.query.email.trim() : "";
+
+    if (!conversationId || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu conversationId hoặc email."
+      });
+    }
+
+    const conversationCheck = await pool.query(
+      `
+      SELECT * FROM conversations
+      WHERE id = $1 AND (user1_email = $2 OR user2_email = $2)
+      `,
+      [conversationId, email]
+    );
+
+    if (conversationCheck.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: "Bạn không có quyền xem cuộc trò chuyện này."
+      });
+    }
+
+    const messagesResult = await pool.query(
+      `
+      SELECT id, conversation_id, sender_email, sender_name, message, created_at,
+             reply_to_id, reply_to_sender_name, reply_to_message
+      FROM private_messages
+      WHERE conversation_id = $1
+      ORDER BY id ASC
+      LIMIT 300
+      `,
+      [conversationId]
+    );
+
+    res.json({
+      success: true,
+      messages: messagesResult.rows
+    });
+  } catch (err) {
+    console.error("Lỗi lấy private messages:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi lấy tin nhắn riêng."
+    });
+  }
+});
+
+app.put("/api/private-messages/:id", async function (req, res) {
+  try {
+    const messageId = req.params.id;
+    const senderEmail = req.body.senderEmail ? req.body.senderEmail.trim() : "";
+    const message = req.body.message ? req.body.message.trim() : "";
+
+    if (!messageId || !senderEmail || !message) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu ID, email hoặc nội dung tin nhắn."
+      });
+    }
+
+    if (message.length > 500) {
+      return res.status(400).json({
+        success: false,
+        message: "Tin nhắn quá dài."
+      });
+    }
+
+    const result = await pool.query(
+      `
+      UPDATE private_messages
+      SET message = $1
+      WHERE id = $2 AND sender_email = $3
+      RETURNING id, conversation_id, sender_email, sender_name, message, created_at,
+                reply_to_id, reply_to_sender_name, reply_to_message
+      `,
+      [message, messageId, senderEmail]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: "Bạn chỉ được sửa tin nhắn của chính mình."
+      });
+    }
+
+    const updatedMessage = result.rows[0];
+
+    io.to("private_" + updatedMessage.conversation_id).emit("edit_private_message", updatedMessage);
+
+    res.json({
+      success: true,
+      message: "Đã sửa tin nhắn.",
+      updatedMessage: updatedMessage
+    });
+  } catch (err) {
+    console.error("Lỗi sửa private message:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi sửa tin nhắn riêng."
+    });
+  }
+});
+
+app.delete("/api/private-messages/:id", async function (req, res) {
+  try {
+    const messageId = req.params.id;
+    const senderEmail = req.body.senderEmail ? req.body.senderEmail.trim() : "";
+
+    if (!messageId || !senderEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu ID hoặc email."
+      });
+    }
+
+    const result = await pool.query(
+      `
+      DELETE FROM private_messages
+      WHERE id = $1 AND sender_email = $2
+      RETURNING id, conversation_id
+      `,
+      [messageId, senderEmail]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: "Bạn chỉ được xóa tin nhắn của chính mình."
+      });
+    }
+
+    const deletedMessage = result.rows[0];
+
+    io.to("private_" + deletedMessage.conversation_id).emit("delete_private_message", Number(messageId));
+
+    res.json({
+      success: true,
+      message: "Đã xóa tin nhắn."
+    });
+  } catch (err) {
+    console.error("Lỗi xóa private message:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi xóa tin nhắn riêng."
+    });
+  }
+});
+
+/* =========================
+   SOCKET.IO
+========================= */
+
+io.on("connection", function (socket) {
+  console.log("Một người dùng đã kết nối:", socket.id);
+
+  socket.on("send_message", async function (data) {
+    try {
+      const username = data.username ? data.username.trim() : "";
+      const message = data.message ? data.message.trim() : "";
+
+      if (!username || !message) {
+        return;
+      }
+
+      if (message.length > 500) {
+        return;
+      }
+
+      const replyToId = data.replyToId || null;
+      const replyToUsername = data.replyToUsername || null;
+      const replyToMessage = data.replyToMessage || null;
+
+      const result = await pool.query(
+        `
+        INSERT INTO messages
+        (username, message, reply_to_id, reply_to_username, reply_to_message)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING id, username, message, created_at,
+                  reply_to_id, reply_to_username, reply_to_message
+        `,
+        [username, message, replyToId, replyToUsername, replyToMessage]
+      );
+
+      const newMessage = result.rows[0];
+
+      io.emit("receive_message", newMessage);
+    } catch (err) {
+      console.error("Lỗi Socket.IO gửi tin phòng chung:", err.message);
+    }
+  });
+
+  socket.on("typing", function (username) {
+    socket.broadcast.emit("user_typing", username);
+  });
+
+  socket.on("stop_typing", function () {
+    socket.broadcast.emit("user_stop_typing");
+  });
+
+  socket.on("join_private_chat", function (conversationId) {
+    if (!conversationId) {
+      return;
+    }
+
+    socket.join("private_" + conversationId);
+  });
+
+  socket.on("send_private_message", async function (data) {
+    try {
+      const conversationId = data.conversationId;
+      const senderEmail = data.senderEmail ? data.senderEmail.trim() : "";
+      const senderName = data.senderName ? data.senderName.trim() : "";
+      const message = data.message ? data.message.trim() : "";
+      const replyToId = data.replyToId || null;
+      const replyToSenderName = data.replyToSenderName || null;
+      const replyToMessage = data.replyToMessage || null;
+
+      if (!conversationId || !senderEmail || !senderName || !message) {
+        return;
+      }
+
+      if (message.length > 500) {
+        return;
+      }
+
+      const conversationCheck = await pool.query(
+        `
+        SELECT * FROM conversations
+        WHERE id = $1 AND (user1_email = $2 OR user2_email = $2)
+        `,
+        [conversationId, senderEmail]
+      );
+
+      if (conversationCheck.rows.length === 0) {
+        return;
+      }
+
+      const result = await pool.query(
+        `
+        INSERT INTO private_messages
+        (conversation_id, sender_email, sender_name, message,
+         reply_to_id, reply_to_sender_name, reply_to_message)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING id, conversation_id, sender_email, sender_name, message, created_at,
+                  reply_to_id, reply_to_sender_name, reply_to_message
+        `,
+        [
+          conversationId,
+          senderEmail,
+          senderName,
+          message,
+          replyToId,
+          replyToSenderName,
+          replyToMessage
+        ]
+      );
+
+      const newMessage = result.rows[0];
+
+      io.to("private_" + conversationId).emit("receive_private_message", newMessage);
+    } catch (err) {
+      console.error("Lỗi gửi private message:", err.message);
+    }
+  });
+
+  socket.on("private_typing", function (data) {
+    const conversationId = data.conversationId;
+    const username = data.username;
+
+    if (!conversationId || !username) {
+      return;
+    }
+
+    socket.to("private_" + conversationId).emit("private_user_typing", username);
+  });
+
+  socket.on("private_stop_typing", function (conversationId) {
+    if (!conversationId) {
+      return;
+    }
+
+    socket.to("private_" + conversationId).emit("private_user_stop_typing");
+  });
+
+  socket.on("disconnect", function () {
+    console.log("Một người dùng đã rời:", socket.id);
+  });
+});
+
+/* =========================
+   START SERVER
+========================= */
+
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, function () {
+  console.log("Server đang chạy ở port " + PORT);
+});

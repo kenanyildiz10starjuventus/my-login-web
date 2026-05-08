@@ -11,7 +11,7 @@ const io = new Server(server);
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// Kết nối tới database Postgres
+// Kết nối database Postgres
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
@@ -25,7 +25,10 @@ pool.connect()
     console.error("Lỗi kết nối Postgres:", err.message);
   });
 
-// Tạo bảng users nếu chưa có
+// =======================
+// TẠO BẢNG DATABASE
+// =======================
+
 pool.query(`
   CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -37,7 +40,6 @@ pool.query(`
   console.error("Lỗi tạo bảng users:", err.message);
 });
 
-// Tạo bảng messages nếu chưa có
 pool.query(`
   CREATE TABLE IF NOT EXISTS messages (
     id SERIAL PRIMARY KEY,
@@ -70,14 +72,47 @@ pool.query(`
   console.error("Lỗi thêm cột reply_to_message:", err.message);
 });
 
-// API kiểm tra backend
+pool.query(`
+  CREATE TABLE IF NOT EXISTS conversations (
+    id SERIAL PRIMARY KEY,
+    user1_email TEXT NOT NULL,
+    user2_email TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user1_email, user2_email)
+  )
+`).catch(function (err) {
+  console.error("Lỗi tạo bảng conversations:", err.message);
+});
+
+pool.query(`
+  CREATE TABLE IF NOT EXISTS private_messages (
+    id SERIAL PRIMARY KEY,
+    conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+    sender_email TEXT NOT NULL,
+    sender_name TEXT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`).catch(function (err) {
+  console.error("Lỗi tạo bảng private_messages:", err.message);
+});
+
+// =======================
+// API KIỂM TRA SERVER
+// =======================
+
 app.get("/api", function (req, res) {
   res.json({
+    success: true,
     message: "Backend API đang chạy!"
   });
 });
 
-// API đăng ký
+// =======================
+// API TÀI KHOẢN
+// =======================
+
+// Đăng ký
 app.post("/register", async function (req, res) {
   try {
     const name = req.body.name ? req.body.name.trim() : "";
@@ -107,7 +142,7 @@ app.post("/register", async function (req, res) {
     }
 
     const checkResult = await pool.query(
-      "SELECT * FROM users WHERE email = $1",
+      "SELECT id FROM users WHERE email = $1",
       [email]
     );
 
@@ -119,16 +154,18 @@ app.post("/register", async function (req, res) {
     }
 
     const insertResult = await pool.query(
-      "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email",
+      `
+      INSERT INTO users (name, email, password)
+      VALUES ($1, $2, $3)
+      RETURNING id, name, email
+      `,
       [name, email, password]
     );
-
-    const user = insertResult.rows[0];
 
     res.status(201).json({
       success: true,
       message: "Đăng ký tài khoản thành công",
-      user: user
+      user: insertResult.rows[0]
     });
   } catch (err) {
     console.error("Lỗi đăng ký:", err.message);
@@ -140,7 +177,7 @@ app.post("/register", async function (req, res) {
   }
 });
 
-// API đăng nhập
+// Đăng nhập
 app.post("/login", async function (req, res) {
   try {
     const email = req.body.email ? req.body.email.trim() : "";
@@ -186,7 +223,7 @@ app.post("/login", async function (req, res) {
   }
 });
 
-// API cập nhật profile
+// Cập nhật profile
 app.put("/update-profile", async function (req, res) {
   try {
     const oldEmail = req.body.oldEmail ? req.body.oldEmail.trim() : "";
@@ -227,7 +264,12 @@ app.put("/update-profile", async function (req, res) {
     }
 
     const updateResult = await pool.query(
-      "UPDATE users SET name = $1, email = $2 WHERE email = $3 RETURNING id, name, email",
+      `
+      UPDATE users
+      SET name = $1, email = $2
+      WHERE email = $3
+      RETURNING id, name, email
+      `,
       [newName, newEmail, oldEmail]
     );
 
@@ -246,7 +288,7 @@ app.put("/update-profile", async function (req, res) {
   }
 });
 
-// API đổi mật khẩu
+// Đổi mật khẩu
 app.put("/change-password", async function (req, res) {
   try {
     const email = req.body.email ? req.body.email.trim() : "";
@@ -315,7 +357,7 @@ app.put("/change-password", async function (req, res) {
   }
 });
 
-// API lấy danh sách users
+// Lấy danh sách user
 app.get("/users", async function (req, res) {
   try {
     const result = await pool.query(
@@ -337,7 +379,7 @@ app.get("/users", async function (req, res) {
   }
 });
 
-// API xóa user theo id
+// Xóa user theo id
 app.delete("/users/:id", async function (req, res) {
   try {
     const userId = req.params.id;
@@ -375,7 +417,7 @@ app.delete("/users/:id", async function (req, res) {
   }
 });
 
-// API xóa tài khoản
+// Xóa tài khoản
 app.delete("/delete-account", async function (req, res) {
   try {
     const email = req.body.email ? req.body.email.trim() : "";
@@ -428,11 +470,21 @@ app.delete("/delete-account", async function (req, res) {
   }
 });
 
-// API lấy tin nhắn chat
+// =======================
+// API CHAT PHÒNG CHUNG
+// =======================
+
+// Lấy tin nhắn phòng chung
 app.get("/api/messages", async function (req, res) {
   try {
     const result = await pool.query(
-      "SELECT id, username, message, created_at, reply_to_id, reply_to_username, reply_to_message FROM messages ORDER BY id ASC LIMIT 100"
+      `
+      SELECT id, username, message, created_at,
+             reply_to_id, reply_to_username, reply_to_message
+      FROM messages
+      ORDER BY id ASC
+      LIMIT 300
+      `
     );
 
     res.json({
@@ -449,11 +501,14 @@ app.get("/api/messages", async function (req, res) {
   }
 });
 
-// API gửi tin nhắn chat
+// Gửi tin nhắn phòng chung bằng API thường
 app.post("/api/messages", async function (req, res) {
   try {
     const username = req.body.username ? req.body.username.trim() : "";
     const message = req.body.message ? req.body.message.trim() : "";
+    const replyToId = req.body.replyToId || null;
+    const replyToUsername = req.body.replyToUsername || null;
+    const replyToMessage = req.body.replyToMessage || null;
 
     if (!username || !message) {
       return res.status(400).json({
@@ -469,72 +524,25 @@ app.post("/api/messages", async function (req, res) {
       });
     }
 
-    await pool.query(
-      "INSERT INTO messages (username, message) VALUES ($1, $2)",
-      [username, message]
-    );
-
-    res.json({
-      success: true,
-      message: "Đã gửi tin nhắn."
-    });
-  } catch (err) {
-    console.error("Lỗi gửi tin nhắn:", err.message);
-
-    res.status(500).json({
-      success: false,
-      message: "Lỗi khi gửi tin nhắn."
-    });
-  }
-});
-
-app.get("/api/messages", async function (req, res) {
-  try {
     const result = await pool.query(
-      "SELECT id, username, message, created_at FROM messages ORDER BY id ASC LIMIT 100"
+      `
+      INSERT INTO messages
+      (username, message, reply_to_id, reply_to_username, reply_to_message)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id, username, message, created_at,
+                reply_to_id, reply_to_username, reply_to_message
+      `,
+      [username, message, replyToId, replyToUsername, replyToMessage]
     );
+
+    const newMessage = result.rows[0];
+
+    io.emit("receive_message", newMessage);
 
     res.json({
       success: true,
-      messages: result.rows
-    });
-  } catch (err) {
-    console.error("Lỗi lấy tin nhắn:", err.message);
-
-    res.status(500).json({
-      success: false,
-      message: "Lỗi khi lấy tin nhắn."
-    });
-  }
-});
-
-app.post("/api/messages", async function (req, res) {
-  try {
-    const username = req.body.username ? req.body.username.trim() : "";
-    const message = req.body.message ? req.body.message.trim() : "";
-
-    if (!username || !message) {
-      return res.status(400).json({
-        success: false,
-        message: "Thiếu tên người dùng hoặc tin nhắn."
-      });
-    }
-
-    if (message.length > 500) {
-      return res.status(400).json({
-        success: false,
-        message: "Tin nhắn quá dài."
-      });
-    }
-
-    await pool.query(
-      "INSERT INTO messages (username, message) VALUES ($1, $2)",
-      [username, message]
-    );
-
-    res.json({
-      success: true,
-      message: "Đã gửi tin nhắn."
+      message: "Đã gửi tin nhắn.",
+      newMessage: newMessage
     });
   } catch (err) {
     console.error("Lỗi gửi tin nhắn:", err.message);
@@ -546,57 +554,7 @@ app.post("/api/messages", async function (req, res) {
   }
 });
 
-io.on("connection", function (socket) {
-  console.log("Một người dùng đã kết nối chat:", socket.id);
-
-  socket.on("send_message", async function (data) {
-    try {
-      const username = data.username ? data.username.trim() : "";
-      const message = data.message ? data.message.trim() : "";
-
-      if (!username || !message) {
-        return;
-      }
-
-      if (message.length > 500) {
-        return;
-      }
-
-      const replyToId = data.replyToId || null;
-const replyToUsername = data.replyToUsername || null;
-const replyToMessage = data.replyToMessage || null;
-
-const result = await pool.query(
-  `
-  INSERT INTO messages 
-  (username, message, reply_to_id, reply_to_username, reply_to_message) 
-  VALUES ($1, $2, $3, $4, $5) 
-  RETURNING id, username, message, created_at, reply_to_id, reply_to_username, reply_to_message
-  `,
-  [username, message, replyToId, replyToUsername, replyToMessage]
-);
-
-      const newMessage = result.rows[0];
-
-      io.emit("receive_message", newMessage);
-    } catch (err) {
-      console.error("Lỗi Socket.IO gửi tin:", err.message);
-    }
-  });
-
-socket.on("typing", function (username) {
-  socket.broadcast.emit("user_typing", username);
-});
-
-socket.on("stop_typing", function () {
-  socket.broadcast.emit("user_stop_typing");
-});
-
-  socket.on("disconnect", function () {
-    console.log("Một người dùng đã rời chat:", socket.id);
-  });
-});
-
+// Xóa tin nhắn phòng chung
 app.delete("/api/messages/:id", async function (req, res) {
   try {
     const messageId = req.params.id;
@@ -636,6 +594,7 @@ app.delete("/api/messages/:id", async function (req, res) {
   }
 });
 
+// Sửa tin nhắn phòng chung
 app.put("/api/messages/:id", async function (req, res) {
   try {
     const messageId = req.params.id;
@@ -661,7 +620,8 @@ app.put("/api/messages/:id", async function (req, res) {
       UPDATE messages
       SET message = $1
       WHERE id = $2 AND username = $3
-      RETURNING id, username, message, created_at
+      RETURNING id, username, message, created_at,
+                reply_to_id, reply_to_username, reply_to_message
       `,
       [message, messageId, username]
     );
@@ -691,6 +651,270 @@ app.put("/api/messages/:id", async function (req, res) {
     });
   }
 });
+
+// =======================
+// API CHAT RIÊNG 1V1
+// =======================
+
+// Lấy danh sách user để chat riêng
+app.get("/api/chat-users", async function (req, res) {
+  try {
+    const currentEmail = req.query.email ? req.query.email.trim() : "";
+
+    if (!currentEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu email người dùng hiện tại."
+      });
+    }
+
+    const result = await pool.query(
+      "SELECT id, name, email FROM users WHERE email != $1 ORDER BY name ASC",
+      [currentEmail]
+    );
+
+    res.json({
+      success: true,
+      users: result.rows
+    });
+  } catch (err) {
+    console.error("Lỗi lấy danh sách chat users:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi lấy danh sách người dùng."
+    });
+  }
+});
+
+// Tạo hoặc lấy cuộc trò chuyện 1v1
+app.post("/api/conversation", async function (req, res) {
+  try {
+    const currentEmail = req.body.currentEmail ? req.body.currentEmail.trim() : "";
+    const otherEmail = req.body.otherEmail ? req.body.otherEmail.trim() : "";
+
+    if (!currentEmail || !otherEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu email người dùng."
+      });
+    }
+
+    if (currentEmail === otherEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "Không thể tự nhắn với chính mình."
+      });
+    }
+
+    const checkUsers = await pool.query(
+      "SELECT id, name, email FROM users WHERE email = $1 OR email = $2",
+      [currentEmail, otherEmail]
+    );
+
+    if (checkUsers.rows.length < 2) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy đủ 2 người dùng."
+      });
+    }
+
+    const sortedEmails = [currentEmail, otherEmail].sort();
+    const user1Email = sortedEmails[0];
+    const user2Email = sortedEmails[1];
+
+    const conversationResult = await pool.query(
+      `
+      INSERT INTO conversations (user1_email, user2_email)
+      VALUES ($1, $2)
+      ON CONFLICT (user1_email, user2_email)
+      DO UPDATE SET user1_email = EXCLUDED.user1_email
+      RETURNING id, user1_email, user2_email, created_at
+      `,
+      [user1Email, user2Email]
+    );
+
+    res.json({
+      success: true,
+      conversation: conversationResult.rows[0]
+    });
+  } catch (err) {
+    console.error("Lỗi tạo/lấy conversation:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi tạo cuộc trò chuyện."
+    });
+  }
+});
+
+// Lấy tin nhắn riêng 1v1
+app.get("/api/private-messages/:conversationId", async function (req, res) {
+  try {
+    const conversationId = req.params.conversationId;
+    const email = req.query.email ? req.query.email.trim() : "";
+
+    if (!conversationId || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu conversationId hoặc email."
+      });
+    }
+
+    const conversationCheck = await pool.query(
+      `
+      SELECT * FROM conversations
+      WHERE id = $1 AND (user1_email = $2 OR user2_email = $2)
+      `,
+      [conversationId, email]
+    );
+
+    if (conversationCheck.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: "Bạn không có quyền xem cuộc trò chuyện này."
+      });
+    }
+
+    const messagesResult = await pool.query(
+      `
+      SELECT id, conversation_id, sender_email, sender_name, message, created_at
+      FROM private_messages
+      WHERE conversation_id = $1
+      ORDER BY id ASC
+      LIMIT 300
+      `,
+      [conversationId]
+    );
+
+    res.json({
+      success: true,
+      messages: messagesResult.rows
+    });
+  } catch (err) {
+    console.error("Lỗi lấy private messages:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi lấy tin nhắn riêng."
+    });
+  }
+});
+
+// =======================
+// SOCKET.IO
+// =======================
+
+io.on("connection", function (socket) {
+  console.log("Một người dùng đã kết nối:", socket.id);
+
+  // Chat phòng chung
+  socket.on("send_message", async function (data) {
+    try {
+      const username = data.username ? data.username.trim() : "";
+      const message = data.message ? data.message.trim() : "";
+
+      if (!username || !message) {
+        return;
+      }
+
+      if (message.length > 500) {
+        return;
+      }
+
+      const replyToId = data.replyToId || null;
+      const replyToUsername = data.replyToUsername || null;
+      const replyToMessage = data.replyToMessage || null;
+
+      const result = await pool.query(
+        `
+        INSERT INTO messages
+        (username, message, reply_to_id, reply_to_username, reply_to_message)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING id, username, message, created_at,
+                  reply_to_id, reply_to_username, reply_to_message
+        `,
+        [username, message, replyToId, replyToUsername, replyToMessage]
+      );
+
+      const newMessage = result.rows[0];
+
+      io.emit("receive_message", newMessage);
+    } catch (err) {
+      console.error("Lỗi Socket.IO gửi tin phòng chung:", err.message);
+    }
+  });
+
+  socket.on("typing", function (username) {
+    socket.broadcast.emit("user_typing", username);
+  });
+
+  socket.on("stop_typing", function () {
+    socket.broadcast.emit("user_stop_typing");
+  });
+
+  // Chat riêng 1v1
+  socket.on("join_private_chat", function (conversationId) {
+    if (!conversationId) {
+      return;
+    }
+
+    socket.join("private_" + conversationId);
+  });
+
+  socket.on("send_private_message", async function (data) {
+    try {
+      const conversationId = data.conversationId;
+      const senderEmail = data.senderEmail ? data.senderEmail.trim() : "";
+      const senderName = data.senderName ? data.senderName.trim() : "";
+      const message = data.message ? data.message.trim() : "";
+
+      if (!conversationId || !senderEmail || !senderName || !message) {
+        return;
+      }
+
+      if (message.length > 500) {
+        return;
+      }
+
+      const conversationCheck = await pool.query(
+        `
+        SELECT * FROM conversations
+        WHERE id = $1 AND (user1_email = $2 OR user2_email = $2)
+        `,
+        [conversationId, senderEmail]
+      );
+
+      if (conversationCheck.rows.length === 0) {
+        return;
+      }
+
+      const result = await pool.query(
+        `
+        INSERT INTO private_messages
+        (conversation_id, sender_email, sender_name, message)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, conversation_id, sender_email, sender_name, message, created_at
+        `,
+        [conversationId, senderEmail, senderName, message]
+      );
+
+      const newMessage = result.rows[0];
+
+      io.to("private_" + conversationId).emit("receive_private_message", newMessage);
+    } catch (err) {
+      console.error("Lỗi gửi private message:", err.message);
+    }
+  });
+
+  socket.on("disconnect", function () {
+    console.log("Một người dùng đã rời:", socket.id);
+  });
+});
+
+// =======================
+// CHẠY SERVER
+// =======================
 
 const PORT = process.env.PORT || 3000;
 
