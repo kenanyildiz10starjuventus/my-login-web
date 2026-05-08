@@ -136,6 +136,12 @@
       white-space: pre-wrap;
     }
 
+    .bubble-wrap {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
     .mine .bubble {
       background: linear-gradient(135deg, #7c3cff, #00d4ff);
       color: white;
@@ -678,7 +684,7 @@
 
 .message-reactions {
   position: absolute;
-  bottom: -6px;
+  bottom: -13px;
   display: flex;
   gap: 5px;
   flex-wrap: wrap;
@@ -947,19 +953,22 @@ row.dataset.messageId = item.id;
         content.appendChild(replyPreview);
       }
 
-      const bubble = document.createElement("div");
-      bubble.className = "bubble";
-      bubble.innerHTML = escapeHTML(item.message);
+      const bubbleWrap = document.createElement("div");
+bubbleWrap.className = "bubble-wrap";
 
-      content.appendChild(bubble);
+const bubble = document.createElement("div");
+bubble.className = "bubble";
+bubble.innerHTML = escapeHTML(item.message);
 
-      const reactionsBox = document.createElement("div");
+const reactionsBox = document.createElement("div");
 reactionsBox.className = "message-reactions";
 reactionsBox.dataset.reactionsFor = item.id;
 
 renderReactionBox(reactionsBox, item.reactions || [], item.id);
 
-content.appendChild(reactionsBox);
+bubbleWrap.appendChild(bubble);
+bubbleWrap.appendChild(reactionsBox);
+content.appendChild(bubbleWrap);
 
       const tools = document.createElement("div");
       tools.className = "message-tools";
@@ -1270,7 +1279,7 @@ function clearSearch() {
         return;
       }
 
-      if (trimmedMessage.length > 500) {
+      if (trimmedMessage.length > 5000) {
         statusText.textContent = "Tin nhắn quá dài.";
         return;
       }
