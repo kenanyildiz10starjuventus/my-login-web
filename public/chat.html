@@ -102,7 +102,7 @@
       padding: 22px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 18px;
     }
 
     .message-row {
@@ -134,8 +134,6 @@
       line-height: 1.55;
       word-wrap: break-word;
       white-space: pre-wrap;
-      position: relative;
-padding-bottom: 22px;
     }
 
     .mine .bubble {
@@ -229,6 +227,7 @@ padding-bottom: 22px;
     .message-content {
       display: flex;
       flex-direction: column;
+      position: relative;
     }
 
     .message-row.mine .message-content {
@@ -595,11 +594,6 @@ padding-bottom: 22px;
   border-color: rgba(0, 212, 255, 0.35);
 }
 
-.reaction-wrapper {
-  position: relative;
-  display: inline-flex;
-  margin-right: 6px;
-}
 
 .reaction-open-btn {
   border: none;
@@ -680,18 +674,27 @@ padding-bottom: 22px;
 
 .message-reactions {
   position: absolute;
-  right: 8px;
   bottom: -14px;
   display: flex;
-  gap: 6px;
+  gap: 5px;
   flex-wrap: wrap;
   z-index: 5;
+  pointer-events: auto;
+  width: max-content;
 }
-
-.message-row.mine .message-reactions {
+/* Tin nhắn người khác: reaction ở góc dưới bên phải bubble */
+.message-row.other .message-reactions {
+  right: 4px;
+  left: auto;
   justify-content: flex-end;
 }
 
+/* Tin nhắn của tôi: reaction ở góc dưới bên trái bubble */
+.message-row.mine .message-reactions {
+  left: 4px;
+  right: auto;
+  justify-content: flex-start;
+}
 .reaction-count {
   display: inline-flex;
   align-items: center;
@@ -947,7 +950,7 @@ reactionsBox.dataset.reactionsFor = item.id;
 
 renderReactionBox(reactionsBox, item.reactions || [], item.id);
 
-bubble.appendChild(reactionsBox);
+content.appendChild(reactionsBox);
 
       const tools = document.createElement("div");
       tools.className = "message-tools";
