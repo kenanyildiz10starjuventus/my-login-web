@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Danh sách user</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #f4f6fb;
+      color: #222;
+    }
+
+    .page {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 36px 20px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 32px;
+    }
+
+    .back-btn {
+      padding: 12px 18px;
+      border-radius: 10px;
+      background: #5b5cf0;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .back-btn:hover {
+      background: #4849d8;
+    }
+
+    .table-box {
+      background: white;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      background: #f1f1ff;
+      color: #333;
+      text-align: left;
+      padding: 14px;
+      font-size: 15px;
+    }
+
+    td {
+      padding: 14px;
+      border-bottom: 1px solid #eee;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 24px;
+      color: #777;
+      font-weight: bold;
+    }
+
+    .message {
+      margin-top: 18px;
+      text-align: center;
+      font-weight: bold;
+      color: red;
+    }
+    .delete-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #ff5c7a;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #e84866;
+}
+
+.delete-btn:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <div class="top">
+      <h1>Danh sách user</h1>
+      <a href="/welcome.html" class="back-btn">Quay lại Trang chủ</a>
+    </div>
+
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr>
+  <th>ID</th>
+  <th>Họ tên</th>
+  <th>Email</th>
+  <th>Hành động</th>
+</tr>
+        </thead>
+
+        <tbody id="userTableBody">
+          <tr>
+            <td colspan="4" class="empty">Đang tải dữ liệu...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p id="message" class="message"></p>
+  </div>
+
+  <script>
+   const isLoggedIn = localStorage.getItem("isLoggedIn");
+
+if (isLoggedIn !== "true") {
+  window.location.href = "/";
+}
+
+    const userTableBody = document.getElementById("userTableBody");
+    const message = document.getElementById("message");
+
+    async function loadUsers() {
+      const response = await fetch("/users");
+      const data = await response.json();
+
+      if (!data.success) {
+        message.textContent = data.message;
+        return;
+      }
+
+      if (data.users.length === 0) {
+        userTableBody.innerHTML = `
+          <tr>
+            <td colspan="4" class="empty">Chưa có user nào</td>
+          </tr>
+        `;
+        return;
+      }
+
+      userTableBody.innerHTML = "";
+
+      const currentUserEmail = localStorage.getItem("userEmail");
+data.users.forEach(function (user, index) {
+  const row = document.createElement("tr");
+
+  const isCurrentUser = user.email === currentUserEmail;
+
+  row.innerHTML = `
+    <td>${index + 1}</td>
+    <td>${user.name}</td>
+    <td>${user.email}</td>
+    <td>
+      <button 
+        class="delete-btn" 
+        onclick="deleteUser(${user.id}, '${user.email}')"
+        ${isCurrentUser ? "disabled" : ""}
+      >
+        ${isCurrentUser ? "Tài khoản hiện tại" : "Xóa"}
+      </button>
+    </td>
+  `;
+
+  userTableBody.appendChild(row);
+});
+    }
+
+    async function deleteUser(id, email) {
+  const confirmDelete = confirm("Bạn có chắc muốn xóa user: " + email + " không?");
+
+  if (!confirmDelete) {
+    return;
+  }
+
+  const response = await fetch("/users/" + id, {
+    method: "DELETE"
+  });
+
+  const data = await response.json();
+
+  if (data.success) {
+    alert("Xóa user thành công");
+    loadUsers();
+  } else {
+    alert(data.message);
+  }
+}
+    loadUsers();
+  </script>
+</body>
+</html>

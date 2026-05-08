@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #f4f6fb;
+      color: #222;
+    }
+
+    .dashboard {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 260px;
+      background: linear-gradient(180deg, #252850, #17192f);
+      color: white;
+      padding: 28px 20px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 36px;
+      text-align: center;
+    }
+
+    .menu a {
+      display: block;
+      padding: 13px 16px;
+      margin-bottom: 10px;
+      border-radius: 12px;
+      color: #e7e7ff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .menu a:hover,
+    .menu a.active {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .main {
+      flex: 1;
+      padding: 28px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 30px;
+    }
+
+    .logout-btn {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 10px;
+      background: #ff5c7a;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .logout-btn:hover {
+      background: #e84866;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .card {
+      background: white;
+      padding: 22px;
+      border-radius: 18px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      color: #555;
+      font-size: 15px;
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 24px;
+      font-weight: bold;
+      color: #222;
+    }
+
+    .profile-section {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 20px;
+    }
+
+    .profile-box,
+    .note-box {
+      background: white;
+      border-radius: 18px;
+      padding: 26px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .avatar {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5b5cf0, #928dab);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    .profile-header h2 {
+      margin: 0 0 6px;
+    }
+
+    .profile-header p {
+      margin: 0;
+      color: #666;
+    }
+
+    .info-row {
+      padding: 14px 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-row span:first-child {
+      color: #666;
+      font-weight: bold;
+    }
+
+    .info-row span:last-child {
+      text-align: right;
+    }
+
+    .action-btn {
+      display: inline-block;
+      margin-top: 22px;
+      padding: 12px 18px;
+      border-radius: 10px;
+      background: #5b5cf0;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .action-btn:hover {
+      background: #4849d8;
+    }
+
+    .note-box h2 {
+      margin-top: 0;
+      font-size: 28px;
+    }
+
+    .todo-list {
+      padding-left: 20px;
+      line-height: 1.9;
+      color: #555;
+    }
+
+    .todo-list li {
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
+    .todo-list a {
+      color: #555;
+      text-decoration: none;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    .todo-list a:hover {
+      color: #5b5cf0;
+      text-decoration: underline;
+    }
+
+    @media (max-width: 900px) {
+      .dashboard {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+      }
+
+      .cards,
+      .profile-section {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="dashboard">
+    <aside class="sidebar">
+      <div class="logo">My Dashboard</div>
+
+      <nav class="menu">
+        <a href="/welcome.html" class="active">Trang chủ</a>
+        <a href="/edit-profile.html">Thông tin cá nhân</a>
+        <a href="/change-password.html">Đổi mật khẩu</a>
+        <a href="/users.html">Danh sách user</a>
+         <a href="/modern.html">Hỗ trợ người xinh 🚀</a>
+        <a href="/love.html">Cái gì đây 🎁</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <h1>Xin chào, <span id="helloName">Người dùng</span> 👋</h1>
+        <button id="logoutBtn" class="logout-btn">Đăng xuất</button>
+      </div>
+
+      <section class="cards">
+        <div class="card">
+          <h3>Trạng thái</h3>
+          <p>Online</p>
+        </div>
+
+        <div class="card">
+          <h3>Tài khoản</h3>
+          <p>User</p>
+        </div>
+
+        <div class="card">
+          <h3>Đăng nhập lúc</h3>
+          <p id="loginTime">--:--</p>
+        </div>
+      </section>
+
+      <section class="profile-section">
+        <div class="profile-box">
+          <div class="profile-header">
+            <div class="avatar" id="avatarText">U</div>
+
+            <div>
+              <h2 id="userName">Người dùng</h2>
+              <p id="userEmail">email@example.com</p>
+            </div>
+          </div>
+
+          <div class="info-row">
+            <span>Họ tên</span>
+            <span id="infoName">Người dùng</span>
+          </div>
+
+          <div class="info-row">
+            <span>Email</span>
+            <span id="infoEmail">email@example.com</span>
+          </div>
+
+          <div class="info-row">
+            <span>Vai trò</span>
+            <span>Xinh gái của bủm</span>
+          </div>
+
+          <div class="info-row">
+            <span>Trạng thái đăng nhập</span>
+            <span>Đã xác thực</span>
+          </div>
+
+          <a href="/edit-profile.html" class="action-btn">Chỉnh sửa thông tin</a>
+        </div>
+
+        <div class="note-box">
+          <h2>Việc có thể làm tiếp</h2>
+
+          <ul class="todo-list">
+            <li>
+              <a href="/edit-profile.html">Chỉnh sửa tên người dùng</a>
+            </li>
+
+            <li>
+              <a href="/change-password.html">Đổi mật khẩu</a>
+            </li>
+
+            <li>
+              <a href="/users.html">Xem danh sách user</a>
+            </li>
+
+            <li>
+              <a href="/delete-account.html">Xóa tài khoản</a>
+            </li>
+
+          </ul>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    const userName = localStorage.getItem("userName");
+    const userEmail = localStorage.getItem("userEmail");
+
+    if (isLoggedIn !== "true") {
+      window.location.href = "/";
+    }
+
+    const displayName = userName || "Người dùng";
+    const displayEmail = userEmail || "Không có email";
+
+    const helloNameElement = document.getElementById("helloName");
+    const userNameElement = document.getElementById("userName");
+    const userEmailElement = document.getElementById("userEmail");
+    const infoNameElement = document.getElementById("infoName");
+    const infoEmailElement = document.getElementById("infoEmail");
+    const avatarTextElement = document.getElementById("avatarText");
+    const loginTimeElement = document.getElementById("loginTime");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    helloNameElement.textContent = displayName;
+    userNameElement.textContent = displayName;
+    userEmailElement.textContent = displayEmail;
+    infoNameElement.textContent = displayName;
+    infoEmailElement.textContent = displayEmail;
+    avatarTextElement.textContent = displayName.charAt(0).toUpperCase();
+
+    const now = new Date();
+    const hour = now.getHours().toString().padStart(2, "0");
+    const minute = now.getMinutes().toString().padStart(2, "0");
+    const second = now.getSeconds().toString().padStart(2, "0");
+
+    loginTimeElement.textContent = hour + ":" + minute ;
+
+    logoutBtn.addEventListener("click", function () {
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("userName");
+      localStorage.removeItem("userEmail");
+
+      window.location.href = "/";
+    });
+  </script>
+</body>
+</html>

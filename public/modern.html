@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>QUANOS Ultra</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #02030a;
+      color: white;
+      overflow-x: hidden;
+    }
+
+    .loader {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: radial-gradient(circle at top, #11183b, #02030a 70%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+
+    .loader.hide {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .loader-logo {
+      width: 90px;
+      height: 90px;
+      border-radius: 28px;
+      display: grid;
+      place-items: center;
+      font-size: 42px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #7c3cff, #00e5ff);
+      box-shadow: 0 0 60px rgba(0, 229, 255, 0.55);
+      animation: loaderPulse 1.4s infinite ease-in-out;
+    }
+
+    .loader-text {
+      margin-top: 22px;
+      color: #dce9ff;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    @keyframes loaderPulse {
+      0%, 100% {
+        transform: scale(1);
+        filter: brightness(1);
+      }
+
+      50% {
+        transform: scale(1.08);
+        filter: brightness(1.3);
+      }
+    }
+
+    .cursor-glow {
+      position: fixed;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      pointer-events: none;
+      background: radial-gradient(circle, rgba(0, 217, 255, 0.18), transparent 62%);
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      mix-blend-mode: screen;
+    }
+
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(125, 64, 255, 0.35), transparent 28%),
+        radial-gradient(circle at 80% 30%, rgba(0, 224, 255, 0.22), transparent 30%),
+        radial-gradient(circle at 50% 85%, rgba(255, 0, 144, 0.22), transparent 32%),
+        #02030a;
+    }
+
+    .grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+      background-size: 58px 58px;
+      mask-image: radial-gradient(circle at center, black, transparent 72%);
+      animation: gridMove 14s linear infinite;
+    }
+
+    @keyframes gridMove {
+      from {
+        transform: translateY(0);
+      }
+
+      to {
+        transform: translateY(58px);
+      }
+    }
+
+    .noise {
+      position: absolute;
+      inset: 0;
+      opacity: 0.08;
+      background-image: repeating-radial-gradient(
+        circle at 0 0,
+        rgba(255,255,255,0.4) 0 1px,
+        transparent 1px 7px
+      );
+    }
+
+    .orb {
+      position: absolute;
+      width: 520px;
+      height: 520px;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.65;
+      animation: orbMove 9s ease-in-out infinite alternate;
+    }
+
+    .orb.one {
+      left: -150px;
+      top: -120px;
+      background: #6d3cff;
+    }
+
+    .orb.two {
+      right: -140px;
+      top: 180px;
+      background: #00e5ff;
+      animation-delay: 2s;
+    }
+
+    .orb.three {
+      left: 35%;
+      bottom: -180px;
+      background: #ff2fa6;
+      animation-delay: 4s;
+    }
+
+    @keyframes orbMove {
+      from {
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+
+      to {
+        transform: translate3d(80px, 45px, 0) scale(1.18);
+      }
+    }
+
+    .page {
+      position: relative;
+      z-index: 2;
+    }
+
+    .nav {
+      width: min(1220px, 92%);
+      margin: 22px auto 0;
+      padding: 14px 18px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(8, 12, 30, 0.58);
+      backdrop-filter: blur(24px);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.35);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      font-size: 20px;
+    }
+
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(0,229,255,0.95), rgba(124,60,255,0.95));
+      box-shadow: 0 0 35px rgba(0,229,255,0.45);
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 22px;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: rgba(255,255,255,0.74);
+      text-decoration: none;
+      font-weight: 700;
+      transition: 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: white;
+    }
+
+    .nav-cta {
+      color: white !important;
+      padding: 11px 18px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #7c3cff, #00e5ff);
+      box-shadow: 0 0 28px rgba(0,229,255,0.35);
+    }
+
+    .hero {
+      width: min(1220px, 92%);
+      margin: 74px auto 0;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 44px;
+      align-items: center;
+    }
+
+    .pill {
+      width: fit-content;
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      color: #dfe9ff;
+      font-weight: 800;
+      margin-bottom: 22px;
+      box-shadow: inset 0 0 25px rgba(255,255,255,0.04);
+    }
+
+    .hero h1 {
+      font-size: clamp(48px, 7vw, 94px);
+      line-height: 0.96;
+      letter-spacing: -4px;
+      margin-bottom: 24px;
+    }
+
+    .gradient-text {
+      background: linear-gradient(120deg, #ffffff 0%, #9defff 32%, #9d6bff 60%, #ff70bd 100%);
+      -webkit-background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 45px rgba(0,229,255,0.18);
+    }
+
+    .hero p {
+      max-width: 650px;
+      color: #b8c3e6;
+      font-size: 19px;
+      line-height: 1.75;
+      margin-bottom: 28px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 34px;
+    }
+
+    .btn {
+      text-decoration: none;
+      border: 0;
+      cursor: pointer;
+      color: white;
+      font-size: 16px;
+      font-weight: 900;
+      padding: 15px 22px;
+      border-radius: 17px;
+      transition: 0.22s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #7c3cff, #00e5ff);
+      box-shadow: 0 18px 45px rgba(0,229,255,0.26);
+    }
+
+    .btn-ghost {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(16px);
+    }
+
+    .btn:hover {
+      transform: translateY(-4px);
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      max-width: 620px;
+    }
+
+    .metric {
+      position: relative;
+      overflow: hidden;
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.075);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(18px);
+    }
+
+    .metric::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.12), transparent);
+      transform: translateX(-120%);
+      animation: shine 4s infinite;
+    }
+
+    @keyframes shine {
+      0% {
+        transform: translateX(-120%);
+      }
+
+      55%, 100% {
+        transform: translateX(120%);
+      }
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 28px;
+      margin-bottom: 4px;
+    }
+
+    .metric span {
+      color: #aeb9db;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .visual {
+      position: relative;
+      min-height: 620px;
+      perspective: 1200px;
+    }
+
+    .holo-panel {
+      position: relative;
+      min-height: 560px;
+      border-radius: 38px;
+      padding: 22px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04));
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(28px);
+      box-shadow:
+        0 38px 120px rgba(0,0,0,0.48),
+        inset 0 0 70px rgba(255,255,255,0.04);
+      transform: rotateY(-10deg) rotateX(7deg);
+      animation: floatPanel 4.5s ease-in-out infinite;
+      overflow: hidden;
+    }
+
+    .holo-panel::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      background: conic-gradient(
+        from 180deg,
+        transparent,
+        rgba(0,229,255,0.36),
+        transparent,
+        rgba(255,112,189,0.35),
+        transparent
+      );
+      opacity: 0.35;
+      filter: blur(18px);
+      z-index: -1;
+    }
+
+    @keyframes floatPanel {
+      0%, 100% {
+        transform: rotateY(-10deg) rotateX(7deg) translateY(0);
+      }
+
+      50% {
+        transform: rotateY(-10deg) rotateX(7deg) translateY(-16px);
+      }
+    }
+
+    .window-dots {
+      display: flex;
+      gap: 9px;
+      margin-bottom: 22px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .red {
+      background: #ff5f57;
+    }
+
+    .yellow {
+      background: #ffbd2e;
+    }
+
+    .green {
+      background: #28c840;
+    }
+
+    .ai-search {
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(3, 8, 24, 0.58);
+      border: 1px solid rgba(255,255,255,0.14);
+      margin-bottom: 16px;
+    }
+
+    .ai-search span {
+      color: #7defff;
+      font-weight: 900;
+    }
+
+    .ai-search p {
+      margin-top: 8px;
+      color: #d2dbff;
+      line-height: 1.6;
+    }
+
+    .holo-orb {
+      width: 210px;
+      height: 210px;
+      border-radius: 50%;
+      margin: 30px auto;
+      background:
+        radial-gradient(circle at 30% 25%, #ffffff, #8df5ff 18%, #7c3cff 48%, #130a3b 78%);
+      box-shadow:
+        0 0 70px rgba(0,229,255,0.55),
+        inset 0 0 55px rgba(255,255,255,0.24);
+      animation: pulseOrb 3s ease-in-out infinite;
+      position: relative;
+    }
+
+    .holo-orb::after {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.26);
+      animation: rotateOrb 5s linear infinite;
+    }
+
+    @keyframes pulseOrb {
+      0%, 100% {
+        transform: scale(1);
+        filter: hue-rotate(0deg);
+      }
+
+      50% {
+        transform: scale(1.06);
+        filter: hue-rotate(22deg);
+      }
+    }
+
+    @keyframes rotateOrb {
+      from {
+        transform: rotate(0deg) scaleX(1.2);
+      }
+
+      to {
+        transform: rotate(360deg) scaleX(1.2);
+      }
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .mini-card {
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.075);
+      border: 1px solid rgba(255,255,255,0.13);
+    }
+
+    .mini-card p {
+      color: #aeb9db;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .mini-card h3 {
+      font-size: 26px;
+    }
+
+    .progress {
+      height: 10px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(135deg, #7c3cff, #00e5ff);
+      border-radius: inherit;
+    }
+
+    .floating-chip {
+      position: absolute;
+      right: -24px;
+      bottom: 80px;
+      padding: 18px 20px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.16);
+      backdrop-filter: blur(22px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      animation: chipFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes chipFloat {
+      0%, 100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-14px);
+      }
+    }
+
+    .section {
+      width: min(1220px, 92%);
+      margin: 105px auto;
+    }
+
+    .section-head {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .section-head h2 {
+      font-size: clamp(34px, 4vw, 54px);
+      margin-bottom: 12px;
+    }
+
+    .section-head p {
+      color: #b8c3e6;
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      position: relative;
+      min-height: 250px;
+      padding: 28px;
+      border-radius: 30px;
+      background: rgba(255,255,255,0.075);
+      border: 1px solid rgba(255,255,255,0.13);
+      backdrop-filter: blur(22px);
+      overflow: hidden;
+      transform-style: preserve-3d;
+      transition: 0.18s;
+      box-shadow: 0 24px 70px rgba(0,0,0,0.25);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        circle at var(--x, 50%) var(--y, 50%),
+        rgba(0,229,255,0.22),
+        transparent 35%
+      );
+      opacity: 0;
+      transition: 0.2s;
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card-icon {
+      font-size: 40px;
+      margin-bottom: 20px;
+      transform: translateZ(30px);
+    }
+
+    .card h3 {
+      font-size: 25px;
+      margin-bottom: 12px;
+      transform: translateZ(30px);
+    }
+
+    .card p {
+      color: #c0caeb;
+      line-height: 1.75;
+      transform: translateZ(30px);
+    }
+
+    .command {
+      margin: 70px auto 0;
+      max-width: 850px;
+      padding: 18px;
+      border-radius: 28px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(24px);
+      box-shadow: 0 30px 90px rgba(0,0,0,0.34);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .command input {
+      flex: 1;
+      background: transparent;
+      border: 0;
+      outline: 0;
+      color: white;
+      font-size: 17px;
+    }
+
+    .command input::placeholder {
+      color: rgba(255,255,255,0.5);
+    }
+
+    .command button {
+      border: 0;
+      color: white;
+      background: linear-gradient(135deg, #7c3cff, #00e5ff);
+      padding: 12px 18px;
+      border-radius: 16px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .ai-chat-box {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 22px;
+      border-radius: 30px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(22px);
+      box-shadow: 0 28px 90px rgba(0,0,0,0.35);
+    }
+
+    .ai-messages {
+      height: 320px;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .ai-message {
+      max-width: 78%;
+      padding: 14px 16px;
+      border-radius: 18px;
+      line-height: 1.6;
+      font-weight: 600;
+      white-space: pre-wrap;
+    }
+
+    .ai-message.bot {
+      align-self: flex-start;
+      background: rgba(125,60,255,0.25);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .ai-message.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #7c3cff, #00e5ff);
+    }
+
+    .ai-input-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .ai-input-row input {
+      flex: 1;
+      padding: 15px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.08);
+      color: white;
+      outline: none;
+      font-size: 16px;
+    }
+
+    .ai-input-row input::placeholder {
+      color: rgba(255,255,255,0.55);
+    }
+
+    .ai-input-row button {
+      border: 0;
+      padding: 15px 22px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #7c3cff, #00e5ff);
+      color: white;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .ai-floating-btn {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      width: 68px;
+      height: 68px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: linear-gradient(135deg, #7c3cff, #00e5ff);
+      color: white;
+      font-size: 28px;
+      cursor: pointer;
+      z-index: 2000;
+      box-shadow: 0 20px 55px rgba(0, 229, 255, 0.35);
+      transition: 0.25s;
+    }
+
+    .ai-floating-btn:hover {
+      transform: translateY(-5px) scale(1.05);
+    }
+
+    .ai-floating-box {
+      position: fixed;
+      right: 24px;
+      bottom: 105px;
+      width: 390px;
+      max-width: calc(100vw - 40px);
+      height: 540px;
+      z-index: 1999;
+      display: none;
+      flex-direction: column;
+      padding: 18px;
+      border-radius: 28px;
+      background: rgba(8, 12, 30, 0.82);
+      border: 1px solid rgba(255,255,255,0.16);
+      backdrop-filter: blur(26px);
+      box-shadow: 0 35px 100px rgba(0,0,0,0.55);
+    }
+
+    .ai-floating-box.show {
+      display: flex;
+    }
+
+    .ai-floating-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      font-weight: 900;
+      color: #eaf6ff;
+    }
+
+    .ai-floating-header button {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      border: none;
+      background: rgba(255,255,255,0.12);
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .ai-floating-box .ai-messages {
+      height: 390px;
+      flex: 1;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(35px);
+      transition: 0.8s ease;
+    }
+
+    .reveal.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .footer {
+      width: min(1220px, 92%);
+      margin: 80px auto 40px;
+      padding: 28px;
+      text-align: center;
+      color: #aeb9db;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    @media (max-width: 950px) {
+      .hero {
+        grid-template-columns: 1fr;
+        margin-top: 46px;
+      }
+
+      .visual {
+        min-height: auto;
+      }
+
+      .holo-panel {
+        transform: none;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .floating-chip {
+        display: none;
+      }
+
+      .ai-input-row {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="loader" id="loader">
+    <div class="loader-logo">Q</div>
+    <div class="loader-text">Loading QUANOS Ultra...</div>
+  </div>
+
+  <div class="cursor-glow" id="cursorGlow"></div>
+
+  <div class="bg">
+    <div class="grid"></div>
+    <div class="noise"></div>
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+  </div>
+
+  <button class="ai-floating-btn" onclick="toggleAIBox()">🤖</button>
+
+  <div class="ai-floating-box" id="aiFloatingBox">
+    <div class="ai-floating-header">
+      <span>QUANOS AI</span>
+      <button onclick="toggleAIBox()">×</button>
+    </div>
+
+    <div class="ai-messages" id="aiMessages">
+      <div class="ai-message bot">
+        Xin chào! Tôi là QUANOS AI nâng cao. Bạn có thể hỏi về dashboard, love, web, AI, Node.js, Python hoặc ngày yêu.
+      </div>
+    </div>
+
+    <div class="ai-input-row">
+      <input id="aiInput" placeholder="Hỏi AI..." />
+      <button onclick="sendAIMessage()">Gửi</button>
+    </div>
+  </div>
+
+  <main class="page">
+    <nav class="nav">
+      <div class="brand">
+        <div class="brand-mark">Q</div>
+        QUANOS ULTRA
+      </div>
+
+      <div class="nav-links">
+        <a href="#features">Công nghệ</a>
+        <a href="#ai">AI</a>
+        <a href="/users.html">Users</a>
+        <a href="/love.html">Love</a>
+        <a href="/welcome.html" class="nav-cta">Trang chủ</a>
+      </div>
+    </nav>
+
+    <section class="hero reveal">
+      <div>
+        <div class="pill">⚡ AI Interface • Cyber Glass • Next Gen</div>
+
+        <h1>
+          Không chỉ là web.
+          <br />
+          Đây là <span class="gradient-text">trải nghiệm tương lai.</span>
+        </h1>
+
+        <p>
+          Một giao diện cao cấp với nền lưới động, ánh sáng hologram, glass card,
+          hiệu ứng 3D theo chuột, loading screen, animation khi cuộn và AI nổi như app thật.
+        </p>
+
+        <div class="actions">
+          <a href="/welcome.html" class="btn btn-primary">Mở Dashboard 🚀</a>
+          <a href="#ai" class="btn btn-ghost">Thử AI ✨</a>
+        </div>
+
+        <div class="metrics">
+          <div class="metric">
+            <strong>Ultra</strong>
+            <span>visual system</span>
+          </div>
+
+          <div class="metric">
+            <strong>3D</strong>
+            <span>interactive cards</span>
+          </div>
+
+          <div class="metric">
+            <strong>AI</strong>
+            <span>floating assistant</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="visual">
+        <div class="holo-panel">
+          <div class="window-dots">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+          </div>
+
+          <div class="ai-search">
+            <span>QUANOS AI</span>
+            <p>Đang dựng giao diện thế hệ mới với trải nghiệm mượt, sáng và sống động.</p>
+          </div>
+
+          <div class="holo-orb"></div>
+
+          <div class="mini-grid">
+            <div class="mini-card">
+              <p>Design Score</p>
+              <h3>98%</h3>
+              <div class="progress">
+                <span style="width: 98%;"></span>
+              </div>
+            </div>
+
+            <div class="mini-card">
+              <p>Motion</p>
+              <h3>Live</h3>
+              <div class="progress">
+                <span style="width: 88%;"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="floating-chip">
+          ✨ Premium Mode<br />
+          <strong>Activated</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="section reveal" id="features">
+      <div class="section-head">
+        <h2>Giao diện này khác gì?</h2>
+        <p>Hihi trông hiện đại hông</p>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-icon">🌐</div>
+          <h3>Không gian 3D</h3>
+          <p>
+            Các khối giao diện có chiều sâu, nghiêng nhẹ theo chuột và phản chiếu ánh sáng.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🧬</div>
+          <h3>Hologram Orb</h3>
+          <p>
+            Quả cầu ánh sáng chuyển động tạo điểm nhấn như một trung tâm AI trong dashboard.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🪄</div>
+          <h3>Cursor Glow</h3>
+          <p>
+            Chuột đi tới đâu, ánh sáng lan tới đó, làm web có cảm giác sống hơn.
+          </p>
+        </div>
+      </div>
+
+      <div class="command">
+        <span>⌘</span>
+        <input id="commandInput" placeholder="Gõ thử: dashboard, love, login, ai..." />
+        <button onclick="runCommand()">Run</button>
+      </div>
+    </section>
+
+    <section class="section reveal" id="ai">
+      <div class="section-head">
+        <h2>QUANOS AI nâng cao</h2>
+        <p>AI mini không cần API key, hiểu nhiều câu hơn và có thể hỗ trợ điều hướng web.</p>
+      </div>
+
+      <div class="ai-chat-box">
+        <div class="ai-messages" id="aiMessagesMain">
+          <div class="ai-message bot">
+            Bạn có thể dùng nút AI nổi góc phải để chat nhanh. Tôi cũng có thể trả lời ở đây.
+          </div>
+        </div>
+
+        <div class="ai-input-row">
+          <input id="aiInputMain" placeholder="Nhập câu hỏi, ví dụ: mở dashboard, đếm ngày yêu..." />
+          <button onclick="sendAIMessageMain()">Gửi</button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      QUANOS ULTRA • Built for a modern personal web experience
+    </footer>
+  </main>
+
+  <script>
+    window.addEventListener("load", () => {
+      const loader = document.getElementById("loader");
+
+      setTimeout(() => {
+        loader.classList.add("hide");
+      }, 900);
+
+      revealOnScroll();
+    });
+
+    const glow = document.getElementById("cursorGlow");
+
+    window.addEventListener("mousemove", (e) => {
+      glow.style.left = e.clientX + "px";
+      glow.style.top = e.clientY + "px";
+    });
+
+    const cards = document.querySelectorAll(".card");
+
+    cards.forEach((card) => {
+      card.addEventListener("mousemove", (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const rotateY = ((x / rect.width) - 0.5) * 12;
+        const rotateX = ((y / rect.height) - 0.5) * -12;
+
+        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px)`;
+        card.style.setProperty("--x", x + "px");
+        card.style.setProperty("--y", y + "px");
+      });
+
+      card.addEventListener("mouseleave", () => {
+        card.style.transform = "rotateX(0deg) rotateY(0deg) translateY(0)";
+      });
+    });
+
+    const revealItems = document.querySelectorAll(".reveal");
+
+    function revealOnScroll() {
+      revealItems.forEach((item) => {
+        const rect = item.getBoundingClientRect();
+
+        if (rect.top < window.innerHeight - 100) {
+          item.classList.add("show");
+        }
+      });
+    }
+
+    window.addEventListener("scroll", revealOnScroll);
+
+    function runCommand() {
+      const value = document.getElementById("commandInput").value.toLowerCase().trim();
+
+      if (value.includes("dashboard")) {
+        window.location.href = "/welcome.html";
+      } else if (value.includes("love")) {
+        window.location.href = "/love.html";
+      } else if (value.includes("login") || value.includes("đăng nhập")) {
+        window.location.href = "/";
+      } else if (value.includes("ai")) {
+        document.getElementById("ai").scrollIntoView({ behavior: "smooth" });
+      } else {
+        alert("Lệnh chưa có. Thử gõ: dashboard, love, login hoặc ai");
+      }
+    }
+
+    function toggleAIBox() {
+      const box = document.getElementById("aiFloatingBox");
+      box.classList.toggle("show");
+    }
+
+    function sendAIMessage() {
+      const input = document.getElementById("aiInput");
+      const messages = document.getElementById("aiMessages");
+      const text = input.value.trim();
+
+      if (text === "") return;
+
+      addMessage(messages, text, "user");
+      input.value = "";
+
+      setTimeout(() => {
+        addMessage(messages, getAIReply(text), "bot");
+      }, 450);
+    }
+
+    function sendAIMessageMain() {
+      const input = document.getElementById("aiInputMain");
+      const messages = document.getElementById("aiMessagesMain");
+      const text = input.value.trim();
+
+      if (text === "") return;
+
+      addMessage(messages, text, "user");
+      input.value = "";
+
+      setTimeout(() => {
+        addMessage(messages, getAIReply(text), "bot");
+      }, 450);
+    }
+
+    function addMessage(container, text, type) {
+      const message = document.createElement("div");
+      message.className = "ai-message " + type;
+      message.textContent = text;
+      container.appendChild(message);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function getAIReply(text) {
+      const raw = text.trim();
+      const question = normalizeText(raw);
+      const now = new Date();
+
+      if (raw === "") {
+        return "Bạn chưa nhập nội dung nào.";
+      }
+
+      const rememberedName = localStorage.getItem("quanos_user_name");
+
+      if (
+        question.includes("toi ten la") ||
+        question.includes("ten toi la") ||
+        question.includes("minh ten la")
+      ) {
+        let name = raw
+          .replace(/tôi tên là/i, "")
+          .replace(/tên tôi là/i, "")
+          .replace(/mình tên là/i, "")
+          .trim();
+
+        if (name.length > 0) {
+          localStorage.setItem("quanos_user_name", name);
+          return "Rất vui được biết bạn, " + name + ". Từ giờ tôi sẽ nhớ tên bạn trên trình duyệt này.";
+        }
+      }
+
+      if (
+        question.includes("toi ten gi") ||
+        question.includes("ban nho ten toi khong")
+      ) {
+        if (rememberedName) {
+          return "Tôi nhớ bạn tên là " + rememberedName + ".";
+        }
+
+        return "Tôi chưa biết tên bạn. Bạn có thể nói: tên tôi là ...";
+      }
+
+      if (hasAny(question, ["xin chao", "hello", "hi", "chao", "alo"])) {
+        return getGreeting(now) + "! Tôi là QUANOS AI. Tôi có thể hỗ trợ bạn về website, Dashboard, Góc yêu thương, ngày yêu, tính toán, Node.js, Python và gợi ý nâng cấp web.";
+      }
+
+      if (hasAny(question, ["ban la ai", "may la ai", "quanos ai la gi", "ai nay la gi"])) {
+        return "Tôi là QUANOS AI, trợ lý mini trong website của bạn. Tôi chưa phải AI thật như ChatGPT, nhưng đã được nâng cấp để hiểu nhiều câu hỏi hơn, biết điều hướng trang, tính toán, ghi nhớ tên đơn giản và trả lời theo ngữ cảnh.";
+      }
+
+      if (hasAny(question, ["lam duoc gi", "co the lam gi", "chuc nang", "giup gi", "biet lam gi"])) {
+        return [
+          "Tôi có thể giúp bạn:",
+          "- Mở Dashboard",
+          "- Mở Góc yêu thương",
+          "- Giải thích website hiện đại",
+          "- Trả lời về Node.js, server, Python",
+          "- Tính toán đơn giản",
+          "- Đếm ngày yêu từ 23/02/2024",
+          "- Ghi nhớ tên bạn trên trình duyệt",
+          "- Gợi ý nâng cấp giao diện",
+          "- Trả lời vài câu trò chuyện cơ bản"
+        ].join("\n");
+      }
+
+      if (hasAny(question, ["mo dashboard", "vao dashboard", "mo trang chinh", "vao trang chinh"])) {
+        setTimeout(() => {
+          window.location.href = "/welcome.html";
+        }, 700);
+
+        return "Được, tôi đang mở Dashboard cho bạn.";
+      }
+
+      if (hasAny(question, ["mo love", "mo goc yeu thuong", "vao goc yeu thuong", "mo trang yeu"])) {
+        setTimeout(() => {
+          window.location.href = "/love.html";
+        }, 700);
+
+        return "Được, tôi đang mở Góc yêu thương cho bạn.";
+      }
+
+      if (hasAny(question, ["mo dang nhap", "vao dang nhap", "login"])) {
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 700);
+
+        return "Được, tôi đang mở trang đăng nhập cho bạn.";
+      }
+
+      if (hasAny(question, ["dashboard", "trang chinh", "bang dieu khien"])) {
+        return "Dashboard là trang chính sau khi đăng nhập. Bạn có thể đặt các mục như thông tin cá nhân, đổi mật khẩu, danh sách user, đọc báo, Góc yêu thương và trang hiện đại ở đó.";
+      }
+
+      if (hasAny(question, ["goc yeu thuong", "love", "ngay yeu", "dem ngay yeu", "gau ngu", "tha tim"])) {
+        return "Góc yêu thương là trang lãng mạn của bạn. Nó có mục chúc ngủ ngon, hai bé gấu ngủ, lời nhắn ngọt ngào, đếm ngày yêu từ 23/02/2024 và hiệu ứng thả tim.";
+      }
+
+      if (hasAny(question, ["23/2/2024", "23/02/2024", "bao nhieu ngay yeu", "dem ngay yeu", "yeu duoc bao nhieu ngay"])) {
+        return getLoveDaysReply();
+      }
+
+      if (hasAny(question, ["hom nay ngay bao nhieu", "ngay hom nay", "hom nay la ngay nao"])) {
+        return getTodayReply(now);
+      }
+
+      if (hasAny(question, ["may gio", "gio hien tai", "bay gio la may gio"])) {
+        return getTimeReply(now);
+      }
+
+      if (hasAny(question, ["web", "website", "trang web", "modern", "hien dai", "giao dien"])) {
+        return "Website này đang dùng phong cách cyber glass: nền lưới động, glow theo chuột, hologram orb, card 3D, command bar, loading screen và AI nổi góc phải như app thật.";
+      }
+
+      if (hasAny(question, ["node", "nodejs", "node.js", "server", "server.js"])) {
+        return "Node.js dùng để chạy backend server.js. Nếu web của bạn có đăng nhập, database, API hoặc route backend thì vẫn cần Node.js. Nếu xóa Node.js, server.js sẽ không chạy được.";
+      }
+
+      if (hasAny(question, ["python", "bot chung khoan", "co phieu", "vnstock"])) {
+        return "Python dùng cho bot chứng khoán và phân tích dữ liệu. Nếu bạn xóa Python thì các file .py sẽ không chạy được nữa. Còn web Node.js vẫn chạy nếu Node.js còn.";
+      }
+
+      if (hasAny(question, ["ai that", "chatgpt", "openai", "api key", "api"])) {
+        return "Muốn AI thật như ChatGPT thì cần dùng API key và gọi AI từ server.js. Bản hiện tại là AI nâng cao bằng JavaScript, không tốn tiền nhưng vẫn chỉ là trả lời theo luật và từ khóa.";
+      }
+
+      if (hasAny(question, ["nang cap", "lam dep hon", "xin hon", "cao cap hon", "dep hon"])) {
+        return [
+          "Một số nâng cấp làm web xịn hơn:",
+          "1. Thêm sidebar hiện đại",
+          "2. Thêm dark/light mode",
+          "3. Thêm avatar user",
+          "4. Thêm notification",
+          "5. Thêm animation khi cuộn",
+          "6. Thêm nhạc nền nhẹ",
+          "7. Thêm biểu đồ thật",
+          "8. Thêm AI thật bằng API",
+          "9. Đưa web lên hosting để dùng mọi nơi"
+        ].join("\n");
+      }
+
+      if (hasAny(question, ["buon", "met", "stress", "chan", "ap luc"])) {
+        return "Nghe có vẻ bạn đang hơi mệt. Nghỉ một chút nhé. Bạn có thể mở Góc yêu thương, thả tim, nghe nhạc nhẹ hoặc tạm rời màn hình vài phút.";
+      }
+
+      if (hasAny(question, ["ngu ngon", "chuc ngu ngon"])) {
+        return "Chúc bạn ngủ ngon, mơ thật đẹp. Mai dậy mình lại tiếp tục nâng cấp website cho xịn hơn nhé.";
+      }
+
+      if (hasAny(question, ["cam on", "thanks", "thank you"])) {
+        return "Không có gì nha. Tôi luôn sẵn sàng hỗ trợ bạn nâng cấp website.";
+      }
+
+      const mathResult = tryCalculate(raw);
+
+      if (mathResult !== null) {
+        return "Kết quả là: " + mathResult;
+      }
+
+      if (hasAny(question, ["co nen", "nen khong", "nen lam gi"])) {
+        return "Theo tôi, bạn nên làm từng bước nhỏ. Nếu đang làm web, hãy ưu tiên: giao diện đẹp trước, sau đó thêm chức năng, cuối cùng mới tối ưu bảo mật và đưa lên hosting.";
+      }
+
+      if (question.startsWith("tai sao") || question.includes("vi sao")) {
+        return "Câu này cần thêm ngữ cảnh để tôi trả lời chính xác. Bạn nói rõ hơn là đang hỏi về phần nào: web, Node.js, Python, Dashboard, Góc yêu thương hay AI?";
+      }
+
+      return getSmartFallback(question);
+    }
+
+    function normalizeText(text) {
+      return text
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/Đ/g, "d")
+        .trim();
+    }
+
+    function hasAny(text, keywords) {
+      return keywords.some((keyword) => text.includes(keyword));
+    }
+
+    function getGreeting(now) {
+      const hour = now.getHours();
+
+      if (hour >= 5 && hour < 11) {
+        return "Chào buổi sáng";
+      }
+
+      if (hour >= 11 && hour < 18) {
+        return "Chào buổi chiều";
+      }
+
+      return "Chào buổi tối";
+    }
+
+    function getTodayReply(now) {
+      const day = now.getDate().toString().padStart(2, "0");
+      const month = (now.getMonth() + 1).toString().padStart(2, "0");
+      const year = now.getFullYear();
+
+      return "Hôm nay là " + day + "/" + month + "/" + year + ".";
+    }
+
+    function getTimeReply(now) {
+      const h = now.getHours().toString().padStart(2, "0");
+      const m = now.getMinutes().toString().padStart(2, "0");
+
+      return "Bây giờ là " + h + ":" + m + " theo giờ trên máy của bạn.";
+    }
+
+    function getLoveDaysReply() {
+      const startDate = new Date(2024, 1, 23);
+      const today = new Date();
+
+      startDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+
+      const diffTime = today - startDate;
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+      return "Tính từ ngày 23/02/2024 đến hôm nay là " + diffDays + " ngày yêu thương.";
+    }
+
+    function tryCalculate(text) {
+      let expression = text
+        .replaceAll("x", "*")
+        .replaceAll("X", "*")
+        .replaceAll("×", "*")
+        .replaceAll("÷", "/")
+        .replaceAll(":", "/")
+        .replaceAll(",", ".")
+        .replace(/[^0-9+\-*/().\s]/g, "");
+
+      expression = expression.trim();
+
+      if (expression === "") {
+        return null;
+      }
+
+      const hasOperator =
+        expression.includes("+") ||
+        expression.includes("-") ||
+        expression.includes("*") ||
+        expression.includes("/");
+
+      if (!hasOperator) {
+        return null;
+      }
+
+      try {
+        const result = Function('"use strict"; return (' + expression + ')')();
+
+        if (typeof result === "number" && isFinite(result)) {
+          return Math.round(result * 1000000) / 1000000;
+        }
+
+        return null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function getSmartFallback(question) {
+      const suggestions = [];
+
+      if (question.includes("user") || question.includes("tai khoan")) {
+        suggestions.push("Nếu bạn đang hỏi về tài khoản, hãy thử hỏi: làm sao xem danh sách user?");
+      }
+
+      if (question.includes("anh") || question.includes("em") || question.includes("yeu")) {
+        suggestions.push("Nếu bạn đang hỏi về tình yêu, hãy thử hỏi: đếm ngày yêu hoặc mở Góc yêu thương.");
+      }
+
+      if (question.includes("loi") || question.includes("bug") || question.includes("sai")) {
+        suggestions.push("Nếu bạn gặp lỗi, hãy gửi nguyên dòng lỗi hoặc ảnh màn hình để tôi phân tích.");
+      }
+
+      if (question.includes("xoa") || question.includes("go")) {
+        suggestions.push("Nếu bạn muốn xóa gì đó, hãy nói rõ muốn xóa Node.js, Python, file, thư mục hay tài khoản.");
+      }
+
+      if (suggestions.length > 0) {
+        return "Tôi chưa hiểu hoàn toàn, nhưng có thể bạn đang muốn hỏi một trong các ý này:\n- " + suggestions.join("\n- ");
+      }
+
+      return "Tôi chưa hiểu rõ câu đó. Bạn có thể hỏi tôi về: Dashboard, Góc yêu thương, web hiện đại, AI, Node.js, Python, ngày yêu, giờ hiện tại hoặc phép tính đơn giản.";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const aiInput = document.getElementById("aiInput");
+      const aiInputMain = document.getElementById("aiInputMain");
+
+      if (aiInput) {
+        aiInput.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            sendAIMessage();
+          }
+        });
+      }
+
+      if (aiInputMain) {
+        aiInputMain.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            sendAIMessageMain();
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Góc yêu thương 💖</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #2e3566, #13172b 68%);
+      color: white;
+      overflow-x: hidden;
+    }
+
+    .page {
+      position: relative;
+      min-height: 100vh;
+      padding: 30px 20px 50px;
+    }
+
+    .moon {
+      position: absolute;
+      top: 45px;
+      right: 60px;
+      width: 110px;
+      height: 110px;
+      background: #fff5c4;
+      border-radius: 50%;
+      box-shadow: 0 0 40px #fff3b0;
+      z-index: 1;
+    }
+
+    .moon::after {
+      content: "";
+      position: absolute;
+      top: 12px;
+      left: 20px;
+      width: 100px;
+      height: 100px;
+      background: #2e3566;
+      border-radius: 50%;
+    }
+
+    .star {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle 1.8s infinite alternate;
+    }
+
+    @keyframes twinkle {
+      from {
+        opacity: 0.3;
+        transform: scale(1);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1.8);
+      }
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-top: 30px;
+    }
+
+    .header h1 {
+      font-size: 46px;
+      margin: 0 0 10px;
+    }
+
+    .header p {
+      color: #ffdce9;
+      font-size: 18px;
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin: 35px 0 25px;
+    }
+
+    .menu-card {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      border-radius: 22px;
+      padding: 22px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.25s;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+    }
+
+    .menu-card:hover {
+      transform: translateY(-4px);
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .menu-card.active {
+      background: linear-gradient(135deg, rgba(255, 120, 170, 0.36), rgba(255, 80, 120, 0.26));
+      border-color: rgba(255, 255, 255, 0.26);
+    }
+
+    .menu-icon {
+      font-size: 34px;
+      margin-bottom: 10px;
+    }
+
+    .menu-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .menu-desc {
+      font-size: 13px;
+      color: #ffe9f1;
+      line-height: 1.5;
+    }
+
+    .content-box {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(14px);
+      border-radius: 28px;
+      padding: 30px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+      min-height: 500px;
+    }
+
+    .section {
+      display: none;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .section h2 {
+      margin-top: 0;
+      font-size: 32px;
+      margin-bottom: 14px;
+    }
+
+    .section p {
+      color: #ffe7f0;
+      line-height: 1.7;
+      font-size: 17px;
+    }
+
+    .nice-box {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 22px;
+      margin-top: 18px;
+    }
+
+    .big-message {
+      font-size: 24px;
+      font-weight: bold;
+      line-height: 1.7;
+      text-align: center;
+      color: #fff7fb;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 22px;
+    }
+
+    button,
+    .back-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+      text-decoration: none;
+    }
+
+    button {
+      background: linear-gradient(135deg, #ff6ea8, #ff4f88);
+      color: white;
+      box-shadow: 0 10px 25px rgba(255, 79, 136, 0.35);
+    }
+
+    button:hover,
+    .back-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.17);
+      color: white;
+    }
+
+    /* Khu gấu ngủ */
+    .sleep-scene {
+      position: relative;
+      width: 100%;
+      max-width: 620px;
+      min-height: 390px;
+      margin: 25px auto 10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow:
+        inset 0 0 35px rgba(255,255,255,0.06),
+        0 18px 45px rgba(0,0,0,0.22);
+    }
+
+    .mini-moon {
+      position: absolute;
+      top: 28px;
+      right: 48px;
+      width: 72px;
+      height: 72px;
+      background: #fff6c8;
+      border-radius: 50%;
+      box-shadow: 0 0 28px #fff6c8;
+      z-index: 1;
+    }
+
+    .mini-moon::after {
+      content: "";
+      position: absolute;
+      top: 8px;
+      left: 15px;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(45, 51, 96, 0.98);
+    }
+
+    .zzz {
+      position: absolute;
+      color: #fff6c8;
+      font-weight: bold;
+      opacity: 0.9;
+      animation: zFloat 2.5s infinite ease-in-out;
+      z-index: 5;
+    }
+
+    .z1 {
+      right: 165px;
+      top: 82px;
+      font-size: 28px;
+    }
+
+    .z2 {
+      right: 135px;
+      top: 60px;
+      font-size: 22px;
+      animation-delay: 0.4s;
+    }
+
+    .z3 {
+      right: 110px;
+      top: 42px;
+      font-size: 18px;
+      animation-delay: 0.8s;
+    }
+
+    @keyframes zFloat {
+      0% {
+        transform: translateY(0);
+        opacity: 0.45;
+      }
+
+      50% {
+        transform: translateY(-8px);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(0);
+        opacity: 0.45;
+      }
+    }
+
+    .cloud {
+      position: absolute;
+      background: rgba(255,255,255,0.12);
+      border-radius: 999px;
+      filter: blur(1px);
+    }
+
+    .cloud::before,
+    .cloud::after {
+      content: "";
+      position: absolute;
+      background: rgba(255,255,255,0.12);
+      border-radius: 50%;
+    }
+
+    .cloud-1 {
+      width: 120px;
+      height: 35px;
+      left: 52px;
+      top: 78px;
+    }
+
+    .cloud-1::before {
+      width: 45px;
+      height: 45px;
+      left: 18px;
+      top: -18px;
+    }
+
+    .cloud-1::after {
+      width: 60px;
+      height: 60px;
+      right: 12px;
+      top: -28px;
+    }
+
+    .cloud-2 {
+      width: 105px;
+      height: 30px;
+      right: 70px;
+      bottom: 92px;
+    }
+
+    .cloud-2::before {
+      width: 42px;
+      height: 42px;
+      left: 14px;
+      top: -16px;
+    }
+
+    .cloud-2::after {
+      width: 52px;
+      height: 52px;
+      right: 8px;
+      top: -24px;
+    }
+
+    .bear-bed {
+      position: absolute;
+      width: 480px;
+      height: 250px;
+      left: 50%;
+      bottom: 28px;
+      transform: translateX(-50%);
+    }
+
+    .bed-base {
+      position: absolute;
+      left: 20px;
+      bottom: 0;
+      width: 440px;
+      height: 115px;
+      background: linear-gradient(135deg, #f59abc, #ec719f);
+      border-radius: 42px 42px 22px 22px;
+      box-shadow: 0 18px 38px rgba(0,0,0,0.25);
+      z-index: 1;
+    }
+
+    .pillow {
+      position: absolute;
+      width: 125px;
+      height: 64px;
+      background: #f7fbff;
+      border-radius: 34px;
+      top: 72px;
+      z-index: 2;
+      box-shadow: inset -8px -8px 0 rgba(181, 225, 243, 0.35);
+    }
+
+    .pillow-left {
+      left: 68px;
+      transform: rotate(-4deg);
+    }
+
+    .pillow-right {
+      right: 68px;
+      transform: rotate(4deg);
+    }
+
+    .cute-bear {
+      position: absolute;
+      width: 118px;
+      height: 118px;
+      border-radius: 50%;
+      top: 46px;
+      z-index: 4;
+      box-shadow: inset -8px -10px 0 rgba(0,0,0,0.05);
+    }
+
+    .brown-bear {
+      left: 116px;
+      background: #bf8a5a;
+    }
+
+    .white-bear {
+      right: 116px;
+      background: #fff9f3;
+      box-shadow:
+        inset -8px -10px 0 rgba(0,0,0,0.04),
+        0 0 0 2px rgba(115,78,55,0.08);
+    }
+
+    .bear-ear {
+      position: absolute;
+      width: 38px;
+      height: 38px;
+      background: inherit;
+      border-radius: 50%;
+      top: 2px;
+      z-index: -1;
+    }
+
+    .ear-left {
+      left: 4px;
+    }
+
+    .ear-right {
+      right: 4px;
+    }
+
+    .white-ear {
+      background: #fff9f3;
+    }
+
+    .ear-inner {
+      width: 20px;
+      height: 20px;
+      background: #f2c8a5;
+      border-radius: 50%;
+      margin: 9px auto;
+    }
+
+    .white-inner {
+      background: #3e251f;
+      opacity: 0.9;
+    }
+
+    .bear-face {
+      position: absolute;
+      width: 52px;
+      height: 38px;
+      background: #f6dbc3;
+      border-radius: 48%;
+      left: 50%;
+      top: 58px;
+      transform: translateX(-50%);
+      z-index: 6;
+    }
+
+    .white-face {
+      background: #fff3ec;
+    }
+
+    .closed-eye {
+      position: absolute;
+      width: 16px;
+      height: 3px;
+      background: #2b1813;
+      border-radius: 500px;
+      top: 48px;
+      z-index: 30;
+    }
+
+    .bear-left-eye {
+      left: 31px;
+    }
+
+    .bear-right-eye {
+      right: 31px;
+    }
+
+    .white-bear .closed-eye {
+      background: #1f1513;
+    }
+
+    .bear-nose {
+      position: absolute;
+      width: 10px;
+      height: 8px;
+      background: #503328;
+      border-radius: 50%;
+      left: 50%;
+      top: 16px;
+      transform: translateX(-50%);
+    }
+
+    .white-nose {
+      background: #33201c;
+    }
+
+    .bear-mouth {
+      position: absolute;
+      width: 18px;
+      height: 8px;
+      border-bottom: 2px solid #503328;
+      border-radius: 50%;
+      left: 50%;
+      top: 22px;
+      transform: translateX(-50%);
+    }
+
+    .bear-cheek {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      background: rgba(255, 210, 170, 0.75);
+      border-radius: 50%;
+      top: 66px;
+    }
+
+    .cheek-left {
+      left: 16px;
+    }
+
+    .cheek-right {
+      right: 16px;
+    }
+
+    .white-cheek {
+      background: rgba(255, 176, 188, 0.65);
+    }
+
+   
+    .blanket-cute {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      width: 380px;
+      height: 122px;
+      background: linear-gradient(135deg, #ffd8e7, #ffaccb);
+      border-radius: 58px 58px 34px 34px;
+      z-index: 6;
+      box-shadow: inset 0 10px 0 rgba(255,255,255,0.35);
+    }
+
+    .blanket-cute span {
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      top: 44px;
+      left: 0;
+      color: #e38eb0;
+      font-size: 26px;
+      font-weight: bold;
+    }
+
+    .flower {
+      position: absolute;
+      color: #fff2a9;
+      font-size: 22px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    .f1 {
+      left: 48px;
+      bottom: 22px;
+    }
+
+    .f2 {
+      right: 58px;
+      bottom: 28px;
+    }
+
+    .f3 {
+      left: 128px;
+      bottom: 14px;
+    }
+
+    .f4 {
+      right: 142px;
+      bottom: 12px;
+    }
+
+    .reason-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .reason-item {
+      background: rgba(255,255,255,0.12);
+      padding: 18px;
+      border-radius: 18px;
+      line-height: 1.6;
+      color: #fff3f8;
+    }
+
+    .count-box {
+      text-align: center;
+      padding: 25px 15px;
+    }
+
+    .count-number {
+      font-size: 62px;
+      font-weight: bold;
+      color: #ffd4e4;
+      margin: 12px 0;
+    }
+
+    .love-date-label {
+      color: #fff5fa;
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .love-date-value {
+      color: #ffd4e4;
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 18px;
+    }
+
+    .small-note {
+      color: #ffe4ef;
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .floating-heart {
+      position: fixed;
+      bottom: -30px;
+      font-size: 22px;
+      animation: floatUp 4s linear forwards;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(-110vh) scale(1.8);
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 34px;
+      }
+
+      .content-box {
+        padding: 22px;
+      }
+
+      .sleep-scene {
+        min-height: 340px;
+      }
+
+      .bear-bed {
+        width: 340px;
+        transform: translateX(-50%) scale(0.78);
+        bottom: 0;
+      }
+
+      .mini-moon {
+        width: 58px;
+        height: 58px;
+        right: 24px;
+      }
+
+      .mini-moon::after {
+        width: 52px;
+        height: 52px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <div class="moon"></div>
+
+    <div class="star" style="top: 12%; left: 12%;"></div>
+    <div class="star" style="top: 19%; left: 28%;"></div>
+    <div class="star" style="top: 15%; left: 75%;"></div>
+    <div class="star" style="top: 30%; left: 85%;"></div>
+    <div class="star" style="top: 48%; left: 9%;"></div>
+    <div class="star" style="top: 67%; left: 20%;"></div>
+    <div class="star" style="top: 76%; left: 82%;"></div>
+    <div class="star" style="top: 58%; left: 68%;"></div>
+
+    <div class="container">
+      <div class="header">
+        <h1>Góc yêu thương 💖</h1>
+        <p>
+          Một góc nhỏ dịu dàng trong Dashboard — nơi có những điều dễ thương,
+          lãng mạn và ấm áp dành cho người thương.
+        </p>
+      </div>
+
+      <div class="menu-grid">
+        <div class="menu-card active" onclick="showSection('sleep', this)">
+          <div class="menu-icon">🌙</div>
+          <div class="menu-title">Chúc ngủ ngon</div>
+          <div class="menu-desc">1 bé gấu nâu, 1 bé gấu trắng ôm nhau ngủ</div>
+        </div>
+
+        <div class="menu-card" onclick="showSection('message', this)">
+          <div class="menu-icon">💌</div>
+          <div class="menu-title">Lời nhắn ngọt ngào</div>
+          <div class="menu-desc">Bấm để đổi những lời yêu thương</div>
+        </div>
+
+        <div class="menu-card" onclick="showSection('reasons', this)">
+          <div class="menu-icon">✨</div>
+          <div class="menu-title">Điều đáng yêu</div>
+          <div class="menu-desc">Top những câu phổ biến</div>
+        </div>
+
+        <div class="menu-card" onclick="showSection('days', this)">
+          <div class="menu-icon">📅</div>
+          <div class="menu-title">Vì xinh không có cái gì để xem ngày</div>
+          <div class="menu-desc">Bí mật 🤫</div>
+        </div>
+
+        <div class="menu-card" onclick="showSection('heart', this)">
+          <div class="menu-icon">💖</div>
+          <div class="menu-title">Thả tim</div>
+          <div class="menu-desc">Piu piu</div>
+        </div>
+      </div>
+
+      <div class="content-box">
+        <div class="section active" id="sleep">
+          <h2>Chúc ngủ ngon 🌙</h2>
+          <p>
+            
+          </p>
+
+          <div class="sleep-scene">
+            <div class="mini-moon"></div>
+
+            <div class="zzz z1">Z</div>
+            <div class="zzz z2">z</div>
+            <div class="zzz z3">z</div>
+
+            <div class="cloud cloud-1"></div>
+            <div class="cloud cloud-2"></div>
+
+            <div class="bear-bed">
+              <div class="pillow pillow-left"></div>
+              <div class="pillow pillow-right"></div>
+
+              <div class="cute-bear brown-bear">
+                <div class="closed-eye bear-left-eye"></div>
+                <div class="closed-eye bear-right-eye"></div>
+
+                <div class="bear-ear ear-left">
+                  <div class="ear-inner"></div>
+                </div>
+
+                <div class="bear-ear ear-right">
+                  <div class="ear-inner"></div>
+                </div>
+
+                <div class="bear-face">
+                  <div class="bear-nose"></div>
+                  <div class="bear-mouth"></div>
+                </div>
+
+                <div class="bear-cheek cheek-left"></div>
+                <div class="bear-cheek cheek-right"></div>
+              </div>
+
+              <div class="cute-bear white-bear">
+                <div class="closed-eye bear-left-eye"></div>
+                <div class="closed-eye bear-right-eye"></div>
+
+                <div class="bear-ear ear-left white-ear">
+                  <div class="ear-inner white-inner"></div>
+                </div>
+
+                <div class="bear-ear ear-right white-ear">
+                  <div class="ear-inner white-inner"></div>
+                </div>
+
+                <div class="bear-face white-face">
+                  <div class="bear-nose white-nose"></div>
+                  <div class="bear-mouth"></div>
+                </div>
+
+                <div class="bear-cheek cheek-left white-cheek"></div>
+                <div class="bear-cheek cheek-right white-cheek"></div>
+              </div>
+
+              <div class="hug-arm brown-arm"></div>
+              <div class="hug-arm white-arm"></div>
+
+              <div class="bed-base"></div>
+
+              <div class="blanket-cute">
+               
+              </div>
+            </div>
+          </div>
+
+          <div class="nice-box">
+            <div class="big-message" id="sleepText">
+              Anh chúc xinh gái ngủ ngoan ạaaa. Chúng mình ôm nhau ngủ thật ngon nhaaaa
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button onclick="changeSleepMessage()">Đổi lời chúc ngủ ngon</button>
+            <button onclick="createHearts(12)">Thả tim</button>
+            <a href="/welcome.html" class="back-btn">Quay lại Dashboard</a>
+          </div>
+        </div>
+
+        <div class="section" id="message">
+          <h2>Lời nhắn ngọt ngào 💌</h2>
+          <p>Mỗi lần bấm là một lời yêu thương mới hiện ra.</p>
+
+          <div class="nice-box">
+            <div class="big-message" id="loveMessage">
+                Anh yêu xinh gáii nhiều nắmmmmmmmmmmmmmmmmmmmmm
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button onclick="changeLoveMessage()">Đổi lời nhắn</button>
+            <button onclick="copyMessage()">Sao chép lời nhắn</button>
+            <button onclick="createHearts(10)">Thả tim</button>
+          </div>
+        </div>
+
+        <div class="section" id="reasons">
+          <h2>Điều đáng yêu về em ✨</h2>
+          <p>Một vài điều nhỏ nhỏ nhưng đủ làm trái tim rung lên.</p>
+
+          <div class="reason-list" id="reasonList">
+            <div class="reason-item">💗 Xinh gái thíiiiiii</div>
+            <div class="reason-item">💗 Xinh gái đừng mắng anh mờ</div>
+            <div class="reason-item">💗 Gái xinh cố lênnnnnn cha dố</div>
+            <div class="reason-item">💗 Xinh gái đáng iu thíiiiii</div>
+            <div class="reason-item">💗 Ố xinh vchhhhhhhhh</div>
+            <div class="reason-item">💗 Hihi a nhớ cô bé nắmmmm</div>
+          </div>
+
+          <div class="btn-row">
+            <button onclick="shuffleReasons()">Đổi vị trí ngẫu nhiên</button>
+            <button onclick="createHearts(14)">Thả tim</button>
+          </div>
+        </div>
+
+        <div class="section" id="days">
+          <h2> Vì xinh không có cái gì để xem ngày📅</h2>
+          <p>
+            Ngày mình gặp nhau <strong>23/02/2024</strong>.
+          
+          </p>
+
+          <div class="nice-box count-box">
+            <div class="love-date-label"> Xinh gái đã chịu đựng bủm được</div>
+          
+
+            <div class="count-number" id="daysCount">0</div>
+            <div id="daysText"> Ngày 💞</div>
+
+            <p class="small-note" id="todayText"></p>
+          </div>
+
+          <div class="btn-row">
+            <button onclick="calculateLoveDays()">Cập nhật số ngày</button>
+            <button onclick="createHearts(16)">Thả tim</button>
+          </div>
+        </div>
+
+        <div class="section" id="heart">
+          <h2>Cơn mưa trái tim 💖</h2>
+          <p>Cho xinh cả bầu trời tim lunnnn ^^</p>
+
+          <div class="nice-box">
+            <div class="big-message">
+              Chỗ này để lỡ hôm nào anh làm xinh tức thì xinh sẽ trút giận anh bằng cái này 🤭
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button onclick="createHearts(20)">Thả nhiều tim</button>
+            <button onclick="createHearts(40)">Thả siêu nhiều tim</button>
+            <button onclick="createHearts(80)">Bùng nổ tim luôn</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+
+    if (isLoggedIn !== "true") {
+      window.location.href = "/";
+    }
+
+    function showSection(sectionId, clickedCard) {
+      const sections = document.querySelectorAll(".section");
+      const cards = document.querySelectorAll(".menu-card");
+
+      sections.forEach((section) => section.classList.remove("active"));
+      cards.forEach((card) => card.classList.remove("active"));
+
+      document.getElementById(sectionId).classList.add("active");
+      clickedCard.classList.add("active");
+
+      if (sectionId === "days") {
+        calculateLoveDays();
+      }
+    }
+
+    const sleepMessages = [
+      "Chúc xinh gái ngủ thật ngonnnnn. Tối xinh mà đau bụng thì xinh phải gọi a liền nha để anh dậy ru xinh ngủ lại ạaa",
+      "Anh chúc bé xinh ngủ ngoan ạaa, xinh ngủ một mạch tới sáng luôn nhaaaaa",
+      "Chúc bạn nhỏ của anh ngủ ngonnnnnnn, mơ đẹp mơ thấy anh ôm bạn nhỏ đi ngủ ạaaa.",
+      "Đến giờ đi ngủ rùiiii, anh chúc xinh gái ngủ ngoannnnn hihi nay xinh gái ngoan nắm ạaaa.",
+      "Xinh gái ơiiii đi ngụ hoiii rùi sáng mai dậy mình học típ nhaaaaa."
+    ];
+
+    function changeSleepMessage() {
+      const randomIndex = Math.floor(Math.random() * sleepMessages.length);
+      document.getElementById("sleepText").textContent = sleepMessages[randomIndex];
+    }
+
+    const loveMessages = [
+      "Cảm ơn Chúa vì đã cho con được gặp xinh ạaa!! Anh yêu xinh gái lắmmmm.",
+      "Tui nhớ xinh gái nắmmmmm, nhớ cô bé nứa hihi 🤭.",
+      "Anh yêu em béeeeee nhìu nắm ạaaa.",
+      "Bủm yêu thốiiiiiii  💕  💕 Thối xinh của bủm hoiiii.",
+     
+    ];
+
+    function changeLoveMessage() {
+      const randomIndex = Math.floor(Math.random() * loveMessages.length);
+      document.getElementById("loveMessage").textContent = loveMessages[randomIndex];
+    }
+
+    function copyMessage() {
+      const text = document.getElementById("loveMessage").textContent;
+
+      navigator.clipboard.writeText(text)
+        .then(() => alert("Đã sao chép lời nhắn 💌"))
+        .catch(() => alert("Không sao chép được, bạn thử lại nhé."));
+    }
+
+    function calculateLoveDays() {
+      const startDate = new Date(2024, 1, 23);
+      const today = new Date();
+
+      startDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+
+      const diffTime = today - startDate;
+
+      // +1 để tính 23/02/2024 là ngày thứ 1
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+      document.getElementById("daysCount").textContent = diffDays;
+      document.getElementById("daysText").textContent = " Ngày 💞";
+
+      const day = today.getDate().toString().padStart(2, "0");
+      const month = (today.getMonth() + 1).toString().padStart(2, "0");
+      const year = today.getFullYear();
+
+
+    }
+
+    function shuffleReasons() {
+      const container = document.getElementById("reasonList");
+      const items = Array.from(container.children);
+
+      for (let i = items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [items[i], items[j]] = [items[j], items[i]];
+      }
+
+      items.forEach((item) => container.appendChild(item));
+      createHearts(10);
+    }
+
+    function createHearts(amount) {
+      const heartIcons = ["💖", "💕", "💗", "💘"];
+
+      for (let i = 0; i < amount; i++) {
+        setTimeout(() => {
+          const heart = document.createElement("div");
+          heart.className = "floating-heart";
+          heart.textContent = heartIcons[Math.floor(Math.random() * heartIcons.length)];
+          heart.style.left = Math.random() * 100 + "vw";
+          heart.style.fontSize = 18 + Math.random() * 24 + "px";
+          document.body.appendChild(heart);
+
+          setTimeout(() => {
+            heart.remove();
+          }, 4000);
+        }, i * 90);
+      }
+    }
+
+    calculateLoveDays();
+  </script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đăng ký tài khoản</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1f1c2c, #928dab);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .register-box {
+      width: 390px;
+      background: white;
+      padding: 30px;
+      border-radius: 18px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #222;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 16px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 10px;
+      background: #5b5cf0;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #4849d8;
+    }
+
+    .message {
+      margin-top: 18px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .error {
+      color: red;
+    }
+
+    .link {
+      margin-top: 18px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .link a {
+      color: #5b5cf0;
+      font-weight: bold;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="register-box">
+    <h1>Đăng ký</h1>
+
+    <form id="registerForm">
+      <label>Họ tên</label>
+      <input type="text" id="name" placeholder="Nhập họ tên" />
+
+      <label>Email</label>
+      <input type="email" id="email" placeholder="Nhập email" />
+
+      <label>Mật khẩu</label>
+      <input type="password" id="password" placeholder="Nhập mật khẩu" />
+
+      <label>Nhập lại mật khẩu</label>
+      <input type="password" id="confirmPassword" placeholder="Nhập lại mật khẩu" />
+
+      <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; margin-bottom: 16px;">
+        <input type="checkbox" id="showPassword" style="width: auto; margin: 0;" />
+        Hiện mật khẩu
+      </label>
+
+      <button type="submit">Tạo tài khoản</button>
+    </form>
+
+    <p id="message" class="message"></p>
+
+    <div class="link">
+      Đã có tài khoản? <a href="/">Đăng nhập</a>
+    </div>
+  </div>
+
+  <script>
+    const registerForm = document.getElementById("registerForm");
+    const message = document.getElementById("message");
+    const passwordInput = document.getElementById("password");
+    const confirmPasswordInput = document.getElementById("confirmPassword");
+    const showPassword = document.getElementById("showPassword");
+
+    showPassword.addEventListener("change", function () {
+      if (showPassword.checked) {
+        passwordInput.type = "text";
+        confirmPasswordInput.type = "text";
+      } else {
+        passwordInput.type = "password";
+        confirmPasswordInput.type = "password";
+      }
+    });
+
+    registerForm.addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const confirmPassword = document.getElementById("confirmPassword").value.trim();
+
+      const response = await fetch("/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: name,
+          email: email,
+          password: password,
+          confirmPassword: confirmPassword
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        message.textContent = "Đăng ký thành công, đang chuyển về trang đăng nhập...";
+        message.className = "message success";
+
+        setTimeout(function () {
+          window.location.href = "/";
+        }, 1200);
+      } else {
+        message.textContent = data.message;
+        message.className = "message error";
+      }
+    });
+  </script>
+</body>
+</html>

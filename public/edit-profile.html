@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chỉnh sửa thông tin</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #141e30, #243b55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .edit-box {
+      width: 420px;
+      max-width: 90%;
+      background: white;
+      padding: 32px;
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #222;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 16px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 10px;
+      background: #5b5cf0;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #4849d8;
+    }
+
+    .back-link {
+      display: block;
+      margin-top: 18px;
+      text-align: center;
+      color: #5b5cf0;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .message {
+      margin-top: 18px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="edit-box">
+    <h1>Chỉnh sửa thông tin</h1>
+
+    <form id="editForm">
+      <label>Họ tên</label>
+      <input type="text" id="name" placeholder="Nhập họ tên mới" />
+
+      <label>Email</label>
+      <input type="email" id="email" placeholder="Nhập email mới" />
+
+      <button type="submit">Lưu thay đổi</button>
+    </form>
+
+    <p id="message" class="message"></p>
+
+    <a href="/welcome.html" class="back-link">Quay lại Dashboard</a>
+  </div>
+
+  <script>
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    const oldName = localStorage.getItem("userName");
+    const oldEmail = localStorage.getItem("userEmail");
+
+    if (isLoggedIn !== "true") {
+      window.location.href = "/";
+    }
+
+    const nameInput = document.getElementById("name");
+    const emailInput = document.getElementById("email");
+    const editForm = document.getElementById("editForm");
+    const message = document.getElementById("message");
+
+    nameInput.value = oldName || "";
+    emailInput.value = oldEmail || "";
+
+    editForm.addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      const newName = nameInput.value.trim();
+      const newEmail = emailInput.value.trim();
+
+      const response = await fetch("/update-profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          oldEmail: oldEmail,
+          name: newName,
+          email: newEmail
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        localStorage.setItem("userName", data.user.name);
+        localStorage.setItem("userEmail", data.user.email);
+
+        message.textContent = "Cập nhật thành công, đang quay lại Dashboard...";
+        message.className = "message success";
+
+        setTimeout(function () {
+          window.location.href = "/welcome.html";
+        }, 1200);
+      } else {
+        message.textContent = data.message;
+        message.className = "message error";
+      }
+    });
+  </script>
+</body>
+</html>
