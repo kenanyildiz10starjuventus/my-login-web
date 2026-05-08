@@ -1,31 +1,49 @@
 const express = require("express");
 const path = require("path");
-const sqlite3 = require("sqlite3").verbose();
+const { Pool } = require("pg");
 
 const app = express();
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// Kết nối tới database SQLite
-const db = new sqlite3.Database("./database.db", function (err) {
-  if (err) {
-    console.log("Lỗi kết nối database:", err.message);
-  } else {
-    console.log("Đã kết nối database SQLite");
-  }
+// Kết nối tới database Postgres
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
 
+pool.connect()
+  .then(function () {
+    console.log("Đã kết nối database Postgres");
+  })
+  .catch(function (err) {
+    console.error("Lỗi kết nối Postgres:", err.message);
+  });
+
 // Tạo bảng users nếu chưa có
-db.run(`
+pool.query(`
   CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL
   )
-`);
+`).catch(function (err) {
+  console.error("Lỗi tạo bảng users:", err.message);
+});
 
+// Tạo bảng messages nếu chưa có
+pool.query(`
+  CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    username TEXT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`).catch(function (err) {
+  console.error("Lỗi tạo bảng messages:", err.message);
+});
 
 // API kiểm tra backend
 app.get("/api", function (req, res) {
@@ -35,94 +53,87 @@ app.get("/api", function (req, res) {
 });
 
 // API đăng ký
-app.post("/register", function (req, res) {
-  const name = req.body.name ? req.body.name.trim() : "";
-  const email = req.body.email ? req.body.email.trim() : "";
-  const password = req.body.password ? req.body.password.trim() : "";
-  const confirmPassword = req.body.confirmPassword ? req.body.confirmPassword.trim() : "";
+app.post("/register", async function (req, res) {
+  try {
+    const name = req.body.name ? req.body.name.trim() : "";
+    const email = req.body.email ? req.body.email.trim() : "";
+    const password = req.body.password ? req.body.password.trim() : "";
+    const confirmPassword = req.body.confirmPassword ? req.body.confirmPassword.trim() : "";
 
-  if (!name || !email || !password || !confirmPassword) {
-    return res.status(400).json({
-      success: false,
-      message: "Vui lòng nhập đầy đủ thông tin"
-    });
-  }
-
-  if (password.length < 4) {
-    return res.status(400).json({
-      success: false,
-      message: "Mật khẩu phải có ít nhất 4 ký tự"
-    });
-  }
-
-  if (password !== confirmPassword) {
-    return res.status(400).json({
-      success: false,
-      message: "Mật khẩu xác nhận không khớp"
-    });
-  }
-
-  const checkEmailSql = "SELECT * FROM users WHERE email = ?";
-
-  db.get(checkEmailSql, [email], function (err, user) {
-    if (err) {
-      return res.status(500).json({
+    if (!name || !email || !password || !confirmPassword) {
+      return res.status(400).json({
         success: false,
-        message: "Lỗi server khi kiểm tra email"
+        message: "Vui lòng nhập đầy đủ thông tin"
       });
     }
 
-    if (user) {
+    if (password.length < 4) {
+      return res.status(400).json({
+        success: false,
+        message: "Mật khẩu phải có ít nhất 4 ký tự"
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Mật khẩu xác nhận không khớp"
+      });
+    }
+
+    const checkResult = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
+
+    if (checkResult.rows.length > 0) {
       return res.status(409).json({
         success: false,
         message: "Email này đã được đăng ký"
       });
     }
 
-   const insertSql = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
+    const insertResult = await pool.query(
+      "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email",
+      [name, email, password]
+    );
 
-db.run(insertSql, [name, email, password], function (err) {
-      if (err) {
-        return res.status(500).json({
-          success: false,
-          message: "Lỗi server khi tạo tài khoản"
-        });
-      }
+    const user = insertResult.rows[0];
 
-      res.status(201).json({
-        success: true,
-        message: "Đăng ký tài khoản thành công",
-        user: {
-          id: this.lastID,
-          name: name,
-          email: email
-        }
-      });
+    res.status(201).json({
+      success: true,
+      message: "Đăng ký tài khoản thành công",
+      user: user
     });
-  });
+  } catch (err) {
+    console.error("Lỗi đăng ký:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi tạo tài khoản"
+    });
+  }
 });
 
 // API đăng nhập
-app.post("/login", function (req, res) {
-  const email = req.body.email ? req.body.email.trim() : "";
-  const password = req.body.password ? req.body.password.trim() : "";
+app.post("/login", async function (req, res) {
+  try {
+    const email = req.body.email ? req.body.email.trim() : "";
+    const password = req.body.password ? req.body.password.trim() : "";
 
-  if (!email || !password) {
-    return res.status(400).json({
-      success: false,
-      message: "Vui lòng nhập email và mật khẩu"
-    });
-  }
-
-  const loginSql = "SELECT * FROM users WHERE email = ? AND password = ?";
-
-  db.get(loginSql, [email, password], function (err, user) {
-    if (err) {
-      return res.status(500).json({
+    if (!email || !password) {
+      return res.status(400).json({
         success: false,
-        message: "Lỗi server khi đăng nhập"
+        message: "Vui lòng nhập email và mật khẩu"
       });
     }
+
+    const result = await pool.query(
+      "SELECT * FROM users WHERE email = $1 AND password = $2",
+      [email, password]
+    );
+
+    const user = result.rows[0];
 
     if (!user) {
       return res.status(401).json({
@@ -132,37 +143,44 @@ app.post("/login", function (req, res) {
     }
 
     res.json({
-  success: true,
-  message: "Đăng nhập thành công",
-  user: {
-    id: user.id,
-    name: user.name,
-    email: user.email
-  }
-});
-  });
-});
-app.put("/update-profile", function (req, res) {
-  const oldEmail = req.body.oldEmail ? req.body.oldEmail.trim() : "";
-  const newName = req.body.name ? req.body.name.trim() : "";
-  const newEmail = req.body.email ? req.body.email.trim() : "";
+      success: true,
+      message: "Đăng nhập thành công",
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email
+      }
+    });
+  } catch (err) {
+    console.error("Lỗi đăng nhập:", err.message);
 
-  if (!oldEmail || !newName || !newEmail) {
-    return res.status(400).json({
+    res.status(500).json({
       success: false,
-      message: "Vui lòng nhập đầy đủ thông tin"
+      message: "Lỗi server khi đăng nhập"
     });
   }
+});
 
-  const findUserSql = "SELECT * FROM users WHERE email = ?";
+// API cập nhật profile
+app.put("/update-profile", async function (req, res) {
+  try {
+    const oldEmail = req.body.oldEmail ? req.body.oldEmail.trim() : "";
+    const newName = req.body.name ? req.body.name.trim() : "";
+    const newEmail = req.body.email ? req.body.email.trim() : "";
 
-  db.get(findUserSql, [oldEmail], function (err, user) {
-    if (err) {
-      return res.status(500).json({
+    if (!oldEmail || !newName || !newEmail) {
+      return res.status(400).json({
         success: false,
-        message: "Lỗi server khi tìm tài khoản"
+        message: "Vui lòng nhập đầy đủ thông tin"
       });
     }
+
+    const findResult = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [oldEmail]
+    );
+
+    const user = findResult.rows[0];
 
     if (!user) {
       return res.status(404).json({
@@ -171,82 +189,73 @@ app.put("/update-profile", function (req, res) {
       });
     }
 
-    const checkEmailSql = "SELECT * FROM users WHERE email = ? AND email != ?";
+    const checkEmailResult = await pool.query(
+      "SELECT * FROM users WHERE email = $1 AND email != $2",
+      [newEmail, oldEmail]
+    );
 
-    db.get(checkEmailSql, [newEmail, oldEmail], function (err, existedUser) {
-      if (err) {
-        return res.status(500).json({
-          success: false,
-          message: "Lỗi server khi kiểm tra email"
-        });
-      }
-
-      if (existedUser) {
-        return res.status(409).json({
-          success: false,
-          message: "Email mới đã được người khác sử dụng"
-        });
-      }
-
-      const updateSql = "UPDATE users SET name = ?, email = ? WHERE email = ?";
-
-      db.run(updateSql, [newName, newEmail, oldEmail], function (err) {
-        if (err) {
-          return res.status(500).json({
-            success: false,
-            message: "Lỗi server khi cập nhật thông tin"
-          });
-        }
-
-        res.json({
-          success: true,
-          message: "Cập nhật thông tin thành công",
-          user: {
-            id: user.id,
-            name: newName,
-            email: newEmail
-          }
-        });
-      });
-    });
-  });
-});
-app.put("/change-password", function (req, res) {
-  const email = req.body.email ? req.body.email.trim() : "";
-  const oldPassword = req.body.oldPassword ? req.body.oldPassword.trim() : "";
-  const newPassword = req.body.newPassword ? req.body.newPassword.trim() : "";
-  const confirmNewPassword = req.body.confirmNewPassword ? req.body.confirmNewPassword.trim() : "";
-
-  if (!email || !oldPassword || !newPassword || !confirmNewPassword) {
-    return res.status(400).json({
-      success: false,
-      message: "Vui lòng nhập đầy đủ thông tin"
-    });
-  }
-
-  if (newPassword.length < 4) {
-    return res.status(400).json({
-      success: false,
-      message: "Mật khẩu mới phải có ít nhất 4 ký tự"
-    });
-  }
-
-  if (newPassword !== confirmNewPassword) {
-    return res.status(400).json({
-      success: false,
-      message: "Mật khẩu mới nhập lại không khớp"
-    });
-  }
-
-  const findUserSql = "SELECT * FROM users WHERE email = ?";
-
-  db.get(findUserSql, [email], function (err, user) {
-    if (err) {
-      return res.status(500).json({
+    if (checkEmailResult.rows.length > 0) {
+      return res.status(409).json({
         success: false,
-        message: "Lỗi server khi tìm tài khoản"
+        message: "Email mới đã được người khác sử dụng"
       });
     }
+
+    const updateResult = await pool.query(
+      "UPDATE users SET name = $1, email = $2 WHERE email = $3 RETURNING id, name, email",
+      [newName, newEmail, oldEmail]
+    );
+
+    res.json({
+      success: true,
+      message: "Cập nhật thông tin thành công",
+      user: updateResult.rows[0]
+    });
+  } catch (err) {
+    console.error("Lỗi cập nhật profile:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi cập nhật thông tin"
+    });
+  }
+});
+
+// API đổi mật khẩu
+app.put("/change-password", async function (req, res) {
+  try {
+    const email = req.body.email ? req.body.email.trim() : "";
+    const oldPassword = req.body.oldPassword ? req.body.oldPassword.trim() : "";
+    const newPassword = req.body.newPassword ? req.body.newPassword.trim() : "";
+    const confirmNewPassword = req.body.confirmNewPassword ? req.body.confirmNewPassword.trim() : "";
+
+    if (!email || !oldPassword || !newPassword || !confirmNewPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng nhập đầy đủ thông tin"
+      });
+    }
+
+    if (newPassword.length < 4) {
+      return res.status(400).json({
+        success: false,
+        message: "Mật khẩu mới phải có ít nhất 4 ký tự"
+      });
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Mật khẩu mới nhập lại không khớp"
+      });
+    }
+
+    const findResult = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
+
+    const user = findResult.rows[0];
 
     if (!user) {
       return res.status(404).json({
@@ -262,53 +271,58 @@ app.put("/change-password", function (req, res) {
       });
     }
 
-    const updatePasswordSql = "UPDATE users SET password = ? WHERE email = ?";
+    await pool.query(
+      "UPDATE users SET password = $1 WHERE email = $2",
+      [newPassword, email]
+    );
 
-    db.run(updatePasswordSql, [newPassword, email], function (err) {
-      if (err) {
-        return res.status(500).json({
-          success: false,
-          message: "Lỗi server khi đổi mật khẩu"
-        });
-      }
-
-      res.json({
-        success: true,
-        message: "Đổi mật khẩu thành công"
-      });
+    res.json({
+      success: true,
+      message: "Đổi mật khẩu thành công"
     });
-  });
-});
-app.get("/users", function (req, res) {
-  const sql = "SELECT id, name, email FROM users";
+  } catch (err) {
+    console.error("Lỗi đổi mật khẩu:", err.message);
 
-  db.all(sql, [], function (err, rows) {
-    if (err) {
-      return res.status(500).json({
-        success: false,
-        message: "Lỗi server khi lấy danh sách user"
-      });
-    }
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi đổi mật khẩu"
+    });
+  }
+});
+
+// API lấy danh sách users
+app.get("/users", async function (req, res) {
+  try {
+    const result = await pool.query(
+      "SELECT id, name, email FROM users ORDER BY id ASC"
+    );
 
     res.json({
       success: true,
       message: "Lấy danh sách user thành công",
-      users: rows
+      users: result.rows
     });
-  });
+  } catch (err) {
+    console.error("Lỗi lấy users:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi lấy danh sách user"
+    });
+  }
 });
-app.delete("/users/:id", function (req, res) {
-  const userId = req.params.id;
 
-  const findUserSql = "SELECT * FROM users WHERE id = ?";
+// API xóa user theo id
+app.delete("/users/:id", async function (req, res) {
+  try {
+    const userId = req.params.id;
 
-  db.get(findUserSql, [userId], function (err, user) {
-    if (err) {
-      return res.status(500).json({
-        success: false,
-        message: "Lỗi server khi tìm user"
-      });
-    }
+    const findResult = await pool.query(
+      "SELECT * FROM users WHERE id = $1",
+      [userId]
+    );
+
+    const user = findResult.rows[0];
 
     if (!user) {
       return res.status(404).json({
@@ -317,44 +331,44 @@ app.delete("/users/:id", function (req, res) {
       });
     }
 
-    const deleteSql = "DELETE FROM users WHERE id = ?";
+    await pool.query(
+      "DELETE FROM users WHERE id = $1",
+      [userId]
+    );
 
-    db.run(deleteSql, [userId], function (err) {
-      if (err) {
-        return res.status(500).json({
-          success: false,
-          message: "Lỗi server khi xóa user"
-        });
-      }
-
-      res.json({
-        success: true,
-        message: "Xóa user thành công"
-      });
+    res.json({
+      success: true,
+      message: "Xóa user thành công"
     });
-  });
-});
+  } catch (err) {
+    console.error("Lỗi xóa user:", err.message);
 
-app.delete("/delete-account", function (req, res) {
-  const email = req.body.email ? req.body.email.trim() : "";
-  const password = req.body.password ? req.body.password.trim() : "";
-
-  if (!email || !password) {
-    return res.status(400).json({
+    res.status(500).json({
       success: false,
-      message: "Vui lòng nhập đầy đủ email và mật khẩu"
+      message: "Lỗi server khi xóa user"
     });
   }
+});
 
-  const findUserSql = "SELECT * FROM users WHERE email = ?";
+// API xóa tài khoản
+app.delete("/delete-account", async function (req, res) {
+  try {
+    const email = req.body.email ? req.body.email.trim() : "";
+    const password = req.body.password ? req.body.password.trim() : "";
 
-  db.get(findUserSql, [email], function (err, user) {
-    if (err) {
-      return res.status(500).json({
+    if (!email || !password) {
+      return res.status(400).json({
         success: false,
-        message: "Lỗi server khi tìm tài khoản"
+        message: "Vui lòng nhập đầy đủ email và mật khẩu"
       });
     }
+
+    const findResult = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
+
+    const user = findResult.rows[0];
 
     if (!user) {
       return res.status(404).json({
@@ -370,26 +384,87 @@ app.delete("/delete-account", function (req, res) {
       });
     }
 
-    const deleteSql = "DELETE FROM users WHERE email = ?";
+    await pool.query(
+      "DELETE FROM users WHERE email = $1",
+      [email]
+    );
 
-    db.run(deleteSql, [email], function (err) {
-      if (err) {
-        return res.status(500).json({
-          success: false,
-          message: "Lỗi server khi xóa tài khoản"
-        });
-      }
-
-      res.json({
-        success: true,
-        message: "Xóa tài khoản thành công"
-      });
+    res.json({
+      success: true,
+      message: "Xóa tài khoản thành công"
     });
-  });
+  } catch (err) {
+    console.error("Lỗi xóa tài khoản:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi xóa tài khoản"
+    });
+  }
+});
+
+// API lấy tin nhắn chat
+app.get("/api/messages", async function (req, res) {
+  try {
+    const result = await pool.query(
+      "SELECT id, username, message, created_at FROM messages ORDER BY id ASC LIMIT 100"
+    );
+
+    res.json({
+      success: true,
+      messages: result.rows
+    });
+  } catch (err) {
+    console.error("Lỗi lấy tin nhắn:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy tin nhắn."
+    });
+  }
+});
+
+// API gửi tin nhắn chat
+app.post("/api/messages", async function (req, res) {
+  try {
+    const username = req.body.username ? req.body.username.trim() : "";
+    const message = req.body.message ? req.body.message.trim() : "";
+
+    if (!username || !message) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu tên người dùng hoặc tin nhắn."
+      });
+    }
+
+    if (message.length > 500) {
+      return res.status(400).json({
+        success: false,
+        message: "Tin nhắn quá dài."
+      });
+    }
+
+    await pool.query(
+      "INSERT INTO messages (username, message) VALUES ($1, $2)",
+      [username, message]
+    );
+
+    res.json({
+      success: true,
+      message: "Đã gửi tin nhắn."
+    });
+  } catch (err) {
+    console.error("Lỗi gửi tin nhắn:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi gửi tin nhắn."
+    });
+  }
 });
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+app.listen(PORT, function () {
   console.log("Server đang chạy ở port " + PORT);
 });
