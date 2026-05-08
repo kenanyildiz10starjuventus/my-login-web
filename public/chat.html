@@ -408,6 +408,30 @@
   font-style: italic;
   min-height: 18px;
 }
+
+.reply-preview {
+  cursor: pointer;
+}
+
+.message-row.jump-highlight .bubble {
+  animation: jumpFlash 1.2s ease;
+  outline: 2px solid rgba(0, 212, 255, 0.8);
+  box-shadow: 0 0 28px rgba(0, 212, 255, 0.45);
+}
+
+@keyframes jumpFlash {
+  0% {
+    transform: scale(1);
+  }
+
+  35% {
+    transform: scale(1.04);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
   </style>
 </head>
 
@@ -595,11 +619,17 @@ function addMessage(item) {
 if (item.reply_to_message) {
   const replyPreview = document.createElement("div");
   replyPreview.className = "reply-preview";
+  replyPreview.title = "Bấm để tới tin nhắn gốc";
+
   replyPreview.innerHTML =
     "<strong>" +
     escapeHTML(item.reply_to_username || "Người dùng") +
     "</strong><br>" +
     escapeHTML(item.reply_to_message);
+
+  replyPreview.onclick = function () {
+    jumpToMessage(item.reply_to_id);
+  };
 
   content.appendChild(replyPreview);
 }
@@ -886,6 +916,35 @@ socket.on("edit_message", function (updatedMessage) {
  
 
   loadMessages();
+
+  function jumpToMessage(messageId) {
+  if (!messageId) {
+    return;
+  }
+
+  const target = document.querySelector('[data-message-id="' + messageId + '"]');
+
+  if (!target) {
+    statusText.textContent = "Tin nhắn gốc không còn trong danh sách hiện tại.";
+
+    setTimeout(function () {
+      statusText.textContent = "";
+    }, 2500);
+
+    return;
+  }
+
+  target.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+
+  target.classList.add("jump-highlight");
+
+  setTimeout(function () {
+    target.classList.remove("jump-highlight");
+  }, 1300);
+}
 </script>
 </body>
 </html>
