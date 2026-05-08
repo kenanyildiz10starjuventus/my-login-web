@@ -501,6 +501,15 @@
         max-width: 260px;
       }
     }
+
+    .typing-bottom {
+  margin: 0;
+  padding: 0 24px 8px;
+  color: #ffd6f1;
+  font-style: italic;
+  min-height: 20px;
+  font-size: 14px;
+}
   </style>
 </head>
 
@@ -510,7 +519,7 @@
       <div>
         <h1>Phòng chat 💬</h1>
         <p>Chat realtime giữa các người dùng, tin nhắn hiện ngay lập tức.</p>
-        <p id="typingText"></p>
+        
       </div>
 
       <a href="/welcome.html" class="back-btn">Trang chủ</a>
@@ -523,7 +532,8 @@
 
     <div class="messages" id="messages"></div>
 
-    <div class="status" id="statusText"></div>
+   <p id="typingText" class="typing-bottom"></p>
+<div class="status" id="statusText"></div>
 
     <div class="reply-box" id="replyBox">
       <div class="reply-box-text" id="replyBoxText"></div>
