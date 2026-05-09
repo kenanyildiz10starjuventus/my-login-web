@@ -17,14 +17,17 @@ const pool = new Pool({
   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
 
-pool.connect()
+pool.on("error", function (err) {
+  console.error("Lỗi Postgres pool:", err.message);
+});
+
+pool.query("SELECT NOW()")
   .then(function () {
     console.log("Đã kết nối database Postgres");
   })
   .catch(function (err) {
     console.error("Lỗi kết nối Postgres:", err.message);
   });
-
 // =======================
 // TẠO BẢNG DATABASE
 // =======================
@@ -949,7 +952,7 @@ async function callOpenRouterAI(question) {
         "X-Title": "QUANOS AI"
       },
       body: JSON.stringify({
-        model: "meta-llama/llama-3.1-8b-instruct:free",
+        model: "openrouter/free",
         messages: [
           {
             role: "system",
