@@ -997,15 +997,52 @@ app.post("/api/ai", async function (req, res) {
     data.error && data.error.message ? data.error.message : "";
 
   if (
-    geminiResponse.status === 429 ||
-    errorMessage.toLowerCase().includes("quota") ||
-    errorMessage.toLowerCase().includes("rate")
-  ) {
+  geminiResponse.status === 429 ||
+  errorMessage.toLowerCase().includes("quota") ||
+  errorMessage.toLowerCase().includes("rate")
+) {
+  let retrySeconds = null;
+
+  // Gemini thường có retryDelay trong data.error.details
+  if (data.error && Array.isArray(data.error.details)) {
+    const retryInfo = data.error.details.find(function (item) {
+      return item.retryDelay;
+    });
+
+    if (retryInfo && retryInfo.retryDelay) {
+      retrySeconds = Math.ceil(Number(retryInfo.retryDelay.replace("s", "")));
+    }
+  }
+
+  // Nếu không có retryDelay thì thử bắt từ câu "Please retry in 26.7s"
+  if (!retrySeconds && errorMessage) {
+    const match = errorMessage.match(/retry in ([0-9.]+)s/i);
+
+    if (match && match[1]) {
+      retrySeconds = Math.ceil(Number(match[1]));
+    }
+  }
+
+  if (retrySeconds) {
+    const retryAt = new Date(Date.now() + retrySeconds * 1000);
+
     return res.status(429).json({
       success: false,
-      message: "AI đang hết lượt miễn phí tạm thời. Đợi một chút rồi hỏi lại nhé."
+      message:
+        "AI đang hết lượt miễn phí tạm thời. Hãy thử lại sau khoảng " +
+        retrySeconds +
+        " giây, lúc " +
+        retryAt.toLocaleTimeString("vi-VN") +
+        "."
     });
   }
+
+  return res.status(429).json({
+    success: false,
+    message:
+      "AI đang hết lượt miễn phí tạm thời. Hãy đợi vài phút rồi hỏi lại nhé."
+  });
+}
 
   return res.status(500).json({
     success: false,
