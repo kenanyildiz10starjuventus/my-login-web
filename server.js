@@ -933,6 +933,93 @@ app.post("/api/messages/:id/reactions", async function (req, res) {
   }
 });
 
+app.post("/api/ai", async function (req, res) {
+  try {
+    const question = req.body.question ? req.body.question.trim() : "";
+
+    if (!question) {
+      return res.status(400).json({
+        success: false,
+        message: "Bạn chưa nhập câu hỏi."
+      });
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({
+        success: false,
+        message: "Server chưa có GEMINI_API_KEY."
+      });
+    }
+
+    const geminiResponse = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" +
+        process.env.GEMINI_API_KEY,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text:
+                    "Bạn là QUANOS AI, trợ lý thông minh trong website cá nhân của Quân. " +
+                    "Hãy trả lời bằng tiếng Việt, tự nhiên, dễ hiểu, không quá dài. " +
+                    "Nếu người dùng hỏi về code/web thì hướng dẫn từng bước rõ ràng. " +
+                    "Nếu không chắc thì hỏi lại, không bịa. " +
+                    "Câu hỏi của người dùng: " +
+                    question
+                }
+              ]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 700
+          }
+        })
+      }
+    );
+
+    const data = await geminiResponse.json();
+
+    if (!geminiResponse.ok) {
+      console.error("Lỗi Gemini:", data);
+
+      return res.status(500).json({
+        success: false,
+        message: "Gemini AI đang lỗi hoặc hết quota miễn phí."
+      });
+    }
+
+    const answer =
+      data &&
+      data.candidates &&
+      data.candidates[0] &&
+      data.candidates[0].content &&
+      data.candidates[0].content.parts &&
+      data.candidates[0].content.parts[0] &&
+      data.candidates[0].content.parts[0].text
+        ? data.candidates[0].content.parts[0].text
+        : "AI chưa trả lời được câu này.";
+
+    res.json({
+      success: true,
+      answer: answer
+    });
+  } catch (error) {
+    console.error("Lỗi /api/ai:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Server không gọi được Gemini AI."
+    });
+  }
+});
+
 io.on("connection", function (socket) {
   console.log("Một người dùng đã kết nối:", socket.id);
 
