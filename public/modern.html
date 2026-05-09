@@ -613,22 +613,35 @@
       }
     }
 
-    async function sendToAI(inputId, messagesId) {
-      const input = document.getElementById(inputId);
-      const messages = document.getElementById(messagesId);
-      const text = input.value.trim();
+    let aiIsThinking = false;
 
-      if (!text) return;
+async function sendToAI(inputId, messagesId) {
+  if (aiIsThinking) return;
 
-      addMessage(messages, text, "user");
-      input.value = "";
+  const input = document.getElementById(inputId);
+  const messages = document.getElementById(messagesId);
+  const text = input.value.trim();
 
-      const loadingMessage = addMessage(messages, "Đang suy nghĩ...", "bot");
-      const answer = await getRealAIReply(text);
+  if (!text) return;
 
-      loadingMessage.textContent = answer;
-      messages.scrollTop = messages.scrollHeight;
-    }
+  aiIsThinking = true;
+  input.disabled = true;
+
+  addMessage(messages, text, "user");
+  input.value = "";
+
+  const loadingMessage = addMessage(messages, "Đang suy nghĩ...", "bot");
+
+  try {
+    const answer = await getRealAIReply(text);
+    loadingMessage.textContent = answer;
+  } finally {
+    aiIsThinking = false;
+    input.disabled = false;
+    input.focus();
+    messages.scrollTop = messages.scrollHeight;
+  }
+}
 
     function sendAIMessage() {
       sendToAI("aiInput", "aiMessages");
