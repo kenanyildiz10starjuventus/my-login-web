@@ -1503,9 +1503,9 @@ function addMessage(container, text, type) {
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      const aiInput = document.getElementById("aiInput");
-      const aiInputMain = document.getElementById("aiInputMain");
-
+  const aiInput = document.getElementById("aiInput");
+  const aiInputMain = document.getElementById("aiInputMain");
+  const commandInput = document.getElementById("commandInput");
       if (aiInput) {
         aiInput.addEventListener("keydown", (event) => {
           if (event.key === "Enter") {
@@ -1521,6 +1521,14 @@ function addMessage(container, text, type) {
           }
         });
       }
+
+      if (commandInput) {
+  commandInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      runCommand();
+    }
+  });
+}
     });
   </script>
 </body>
