@@ -952,7 +952,7 @@ async function callOpenRouterAI(question) {
         "X-Title": "QUANOS AI"
       },
       body: JSON.stringify({
-        model: "google/gemma-3-27b-it:free",
+        model: "openrouter/free",
         messages: [
           {
             role: "system",
