@@ -952,7 +952,7 @@ app.post("/api/ai", async function (req, res) {
     }
 
     const geminiResponse = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" +
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" +
         process.env.GEMINI_API_KEY,
       {
         method: "POST",
@@ -993,12 +993,23 @@ app.post("/api/ai", async function (req, res) {
     if (!geminiResponse.ok) {
   console.error("Lỗi Gemini:", JSON.stringify(data, null, 2));
 
+  const errorMessage =
+    data.error && data.error.message ? data.error.message : "";
+
+  if (
+    geminiResponse.status === 429 ||
+    errorMessage.toLowerCase().includes("quota") ||
+    errorMessage.toLowerCase().includes("rate")
+  ) {
+    return res.status(429).json({
+      success: false,
+      message: "AI đang hết lượt miễn phí tạm thời. Đợi khoảng 30 giây rồi hỏi lại nhé."
+    });
+  }
+
   return res.status(500).json({
     success: false,
-    message:
-      data.error && data.error.message
-        ? data.error.message
-        : "Gemini AI đang lỗi hoặc hết quota miễn phí."
+    message: "AI đang lỗi. Kiểm tra API key hoặc Render Logs nhé."
   });
 }
     const answer =
