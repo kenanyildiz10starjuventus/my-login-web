@@ -1000,6 +1000,68 @@ async function callOpenRouterAI(question) {
   return answer;
 }
 
+async function callCerebrasAI(question) {
+  if (!process.env.CEREBRAS_API_KEY) {
+    throw new Error("Server chưa có CEREBRAS_API_KEY.");
+  }
+
+  const cerebrasResponse = await fetch(
+    "https://api.cerebras.ai/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + process.env.CEREBRAS_API_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-oss-120b",
+        messages: [
+          {
+            role: "system",
+            content:
+              "Bạn là QUANOS AI, trợ lý trong website cá nhân của Quân. " +
+              "Luôn trả lời bằng tiếng Việt tự nhiên như đang chat với người dùng. " +
+              "Nếu câu người dùng ngắn, mơ hồ, hoặc giống tin nhắn trò chuyện, hãy trả lời ngắn gọn trong 1-3 câu. " +
+              "Nếu người dùng nói đùa, nói cảm xúc, hoặc nhắn kiểu chat, hãy phản hồi tự nhiên, không biến thành bài giải thích dài. " +
+              "Chỉ trả lời dài khi người dùng hỏi về code, lỗi, web, hướng dẫn từng bước, hoặc yêu cầu giải thích chi tiết. " +
+              "Nếu không chắc người dùng muốn hỏi gì, hãy hỏi lại một câu ngắn thay vì đoán quá xa. " +
+              "Không dùng markdown quá nhiều. Không tự cắt ngang câu."
+          },
+          {
+            role: "user",
+            content: question
+          }
+        ],
+        temperature: 0.8,
+        max_tokens: 1200
+      })
+    }
+  );
+
+  const data = await cerebrasResponse.json();
+
+  if (!cerebrasResponse.ok) {
+    console.error("Lỗi Cerebras:", JSON.stringify(data, null, 2));
+
+    throw new Error(
+      data.error && data.error.message
+        ? data.error.message
+        : "Cerebras đang lỗi."
+    );
+  }
+
+  const answer =
+    data &&
+    data.choices &&
+    data.choices[0] &&
+    data.choices[0].message &&
+    data.choices[0].message.content
+      ? data.choices[0].message.content
+      : "Cerebras chưa trả lời được câu này.";
+
+  return answer;
+}
+
 app.post("/api/ai", async function (req, res) {
   try {
     const question = req.body.question ? req.body.question.trim() : "";
@@ -1070,9 +1132,9 @@ app.post("/api/ai", async function (req, res) {
   errorMessage.toLowerCase().includes("limit")
 ) {
   try {
-    console.log("Gemini hết quota, đang chuyển sang OpenRouter...");
+    console.log("Gemini hết quota, đang chuyển sang Cerebras...");
 
-    const fallbackAnswer = await callOpenRouterAI(question);
+    const fallbackAnswer = await callCerebrasAI(question);
 
     return res.json({
       success: true,
@@ -1080,12 +1142,12 @@ app.post("/api/ai", async function (req, res) {
         fallbackAnswer 
     });
   } catch (fallbackError) {
-    console.error("OpenRouter fallback lỗi:", fallbackError.message);
+    console.error("Cerebras fallback lỗi:", fallbackError.message);
 
     return res.status(429).json({
       success: false,
       message:
-        "Gemini đang hết lượt miễn phí và OpenRouter dự phòng cũng chưa dùng được. Kiểm tra OPENROUTER_API_KEY hoặc thử lại sau nhé."
+        "Gemini đang hết lượt miễn phí và Cerebras dự phòng cũng chưa dùng được. Kiểm tra CEREBRAS_API_KEY hoặc thử lại sau nhé."
     });
   }
 }
