@@ -933,6 +933,70 @@ app.post("/api/messages/:id/reactions", async function (req, res) {
   }
 });
 
+async function callOpenRouterAI(question) {
+  if (!process.env.OPENROUTER_API_KEY) {
+    throw new Error("Server chưa có OPENROUTER_API_KEY.");
+  }
+
+  const openRouterResponse = await fetch(
+    "https://openrouter.ai/api/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + process.env.OPENROUTER_API_KEY,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://nthxinhgai.onrender.com",
+        "X-Title": "QUANOS AI"
+      },
+      body: JSON.stringify({
+        model: "meta-llama/llama-3.1-8b-instruct:free",
+        messages: [
+          {
+            role: "system",
+            content:
+              "Bạn là QUANOS AI, trợ lý trong website cá nhân của Quân. " +
+              "Luôn trả lời bằng tiếng Việt tự nhiên như đang chat với người dùng. " +
+              "Nếu câu người dùng ngắn, mơ hồ, hoặc giống tin nhắn trò chuyện, hãy trả lời ngắn gọn trong 1-3 câu. " +
+              "Nếu người dùng nói đùa, nói cảm xúc, hoặc nhắn kiểu chat, hãy phản hồi tự nhiên, không biến thành bài giải thích dài. " +
+              "Chỉ trả lời dài khi người dùng hỏi về code, lỗi, web, hướng dẫn từng bước, hoặc yêu cầu giải thích chi tiết. " +
+              "Nếu không chắc người dùng muốn hỏi gì, hãy hỏi lại một câu ngắn thay vì đoán quá xa. " +
+              "Không dùng markdown quá nhiều. Không tự cắt ngang câu."
+          },
+          {
+            role: "user",
+            content: question
+          }
+        ],
+        temperature: 0.8,
+        max_tokens: 1200
+      })
+    }
+  );
+
+  const data = await openRouterResponse.json();
+
+  if (!openRouterResponse.ok) {
+    console.error("Lỗi OpenRouter:", JSON.stringify(data, null, 2));
+
+    throw new Error(
+      data.error && data.error.message
+        ? data.error.message
+        : "OpenRouter đang lỗi."
+    );
+  }
+
+  const answer =
+    data &&
+    data.choices &&
+    data.choices[0] &&
+    data.choices[0].message &&
+    data.choices[0].message.content
+      ? data.choices[0].message.content
+      : "OpenRouter chưa trả lời được câu này.";
+
+  return answer;
+}
+
 app.post("/api/ai", async function (req, res) {
   try {
     const question = req.body.question ? req.body.question.trim() : "";
@@ -999,54 +1063,29 @@ app.post("/api/ai", async function (req, res) {
   if (
   geminiResponse.status === 429 ||
   errorMessage.toLowerCase().includes("quota") ||
-  errorMessage.toLowerCase().includes("rate")
+  errorMessage.toLowerCase().includes("rate") ||
+  errorMessage.toLowerCase().includes("limit")
 ) {
-  let retrySeconds = null;
+  try {
+    console.log("Gemini hết quota, đang chuyển sang OpenRouter...");
 
-  // Gemini thường có retryDelay trong data.error.details
-  if (data.error && Array.isArray(data.error.details)) {
-    const retryInfo = data.error.details.find(function (item) {
-      return item.retryDelay;
+    const fallbackAnswer = await callOpenRouterAI(question);
+
+    return res.json({
+      success: true,
+      answer:
+        fallbackAnswer +
+        "\n\n(Đang trả lời bằng OpenRouter dự phòng vì Gemini đang hết lượt miễn phí.)"
     });
-
-    if (retryInfo && retryInfo.retryDelay) {
-      retrySeconds = Math.ceil(Number(retryInfo.retryDelay.replace("s", "")));
-    }
-  }
-
-  // Nếu không có retryDelay thì thử bắt từ câu "Please retry in 26.7s"
-  if (!retrySeconds && errorMessage) {
-    const match = errorMessage.match(/retry in ([0-9.]+)s/i);
-
-    if (match && match[1]) {
-      retrySeconds = Math.ceil(Number(match[1]));
-    }
-  }
-
-  if (retrySeconds) {
-    const retryAt = new Date(Date.now() + retrySeconds * 1000);
+  } catch (fallbackError) {
+    console.error("OpenRouter fallback lỗi:", fallbackError.message);
 
     return res.status(429).json({
       success: false,
       message:
-        "AI đang hết lượt miễn phí tạm thời. Hãy thử lại sau khoảng " +
-        retrySeconds +
-        " giây, lúc " +
-        retryAt.toLocaleTimeString("vi-VN", {
-  timeZone: "Asia/Ho_Chi_Minh",
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit"
-}) +
-        "."
+        "Gemini đang hết lượt miễn phí và OpenRouter dự phòng cũng chưa dùng được. Kiểm tra OPENROUTER_API_KEY hoặc thử lại sau nhé."
     });
   }
-
-  return res.status(429).json({
-    success: false,
-    message:
-      "AI đang hết lượt miễn phí tạm thời. Hãy đợi vài phút rồi hỏi lại nhé."
-  });
 }
 
   return res.status(500).json({
