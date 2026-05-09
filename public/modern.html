@@ -1138,35 +1138,44 @@
       box.classList.toggle("show");
     }
 
-    function sendAIMessage() {
-      const input = document.getElementById("aiInput");
-      const messages = document.getElementById("aiMessages");
-      const text = input.value.trim();
+    
+     async function sendAIMessage() {
+  const input = document.getElementById("aiInput");
+  const messages = document.getElementById("aiMessages");
+  const text = input.value.trim();
 
-      if (text === "") return;
+  if (text === "") return;
 
-      addMessage(messages, text, "user");
-      input.value = "";
+  addMessage(messages, text, "user");
+  input.value = "";
 
-      setTimeout(() => {
-        addMessage(messages, getAIReply(text), "bot");
-      }, 450);
-    }
+  addMessage(messages, "Đang suy nghĩ...", "bot");
 
-    function sendAIMessageMain() {
-      const input = document.getElementById("aiInputMain");
-      const messages = document.getElementById("aiMessagesMain");
-      const text = input.value.trim();
+  const loadingMessage = messages.lastElementChild;
+  const answer = await getRealAIReply(text);
 
-      if (text === "") return;
+  loadingMessage.textContent = answer;
+  messages.scrollTop = messages.scrollHeight;
+}
 
-      addMessage(messages, text, "user");
-      input.value = "";
+  async function sendAIMessage() {
+  const input = document.getElementById("aiInput");
+  const messages = document.getElementById("aiMessages");
+  const text = input.value.trim();
 
-      setTimeout(() => {
-        addMessage(messages, getAIReply(text), "bot");
-      }, 450);
-    }
+  if (text === "") return;
+
+  addMessage(messages, text, "user");
+  input.value = "";
+
+  addMessage(messages, "Đang suy nghĩ...", "bot");
+
+  const loadingMessage = messages.lastElementChild;
+  const answer = await getRealAIReply(text);
+
+  loadingMessage.textContent = answer;
+  messages.scrollTop = messages.scrollHeight;
+}
 
     function addMessage(container, text, type) {
       const message = document.createElement("div");
@@ -1175,6 +1184,31 @@
       container.appendChild(message);
       container.scrollTop = container.scrollHeight;
     }
+
+    async function getRealAIReply(text) {
+  try {
+    const response = await fetch("/api/ai", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        question: text
+      })
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      return data.message || "AI đang lỗi, thử lại sau nhé.";
+    }
+
+    return data.answer || "AI chưa trả lời được câu này.";
+  } catch (error) {
+    return "Không kết nối được AI thật. Kiểm tra lại server hoặc API key nhé.";
+  }
+}
+
 
     function getAIReply(text) {
       const raw = text.trim();
