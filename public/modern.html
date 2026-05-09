@@ -895,7 +895,7 @@
 
     <div class="ai-messages" id="aiMessages">
       <div class="ai-message bot">
-        Xin chào! Tôi là QUANOS AI nâng cao. Bạn có thể hỏi về dashboard, love, web, AI, Node.js, Python hoặc ngày yêu.
+        Xin chào! Tôi là QUANOS AI thật. Bạn có thể hỏi về web, code, tình yêu, database, Render, Neon hoặc bất kỳ câu hỏi nào.
       </div>
     </div>
 
@@ -1042,13 +1042,13 @@
     <section class="section reveal" id="ai">
       <div class="section-head">
         <h2>QUANOS AI nâng cao</h2>
-        <p>AI mini không cần API key, hiểu nhiều câu hơn và có thể hỗ trợ điều hướng web.</p>
+        <p>AI thật đang chạy qua server, trả lời thông minh hơn và vẫn giữ giao diện QUANOS.</p>
       </div>
 
       <div class="ai-chat-box">
         <div class="ai-messages" id="aiMessagesMain">
           <div class="ai-message bot">
-            Bạn có thể dùng nút AI nổi góc phải để chat nhanh. Tôi cũng có thể trả lời ở đây.
+            Bạn có thể hỏi tôi ở đây. Tôi sẽ trả lời bằng AI thật qua server.
           </div>
         </div>
 
@@ -1138,46 +1138,45 @@
       box.classList.toggle("show");
     }
 
-    
-     async function sendAIMessage() {
-  const input = document.getElementById("aiInput");
-  const messages = document.getElementById("aiMessages");
-  const text = input.value.trim();
+    async function sendAIMessage() {
+      const input = document.getElementById("aiInput");
+      const messages = document.getElementById("aiMessages");
+      const text = input.value.trim();
 
-  if (text === "") return;
+      if (text === "") return;
 
-  addMessage(messages, text, "user");
-  input.value = "";
+      addMessage(messages, text, "user");
+      input.value = "";
 
-  addMessage(messages, "Đang suy nghĩ...", "bot");
+      addMessage(messages, "Đang suy nghĩ...", "bot");
 
-  const loadingMessage = messages.lastElementChild;
-  const answer = await getRealAIReply(text);
+      const loadingMessage = messages.lastElementChild;
+      const answer = await getRealAIReply(text);
 
-  loadingMessage.textContent = answer;
-  messages.scrollTop = messages.scrollHeight;
-}
+      loadingMessage.textContent = answer;
+      messages.scrollTop = messages.scrollHeight;
+    }
 
-  async function sendAIMessage() {
-  const input = document.getElementById("aiInput");
-  const messages = document.getElementById("aiMessages");
-  const text = input.value.trim();
+    async function sendAIMessageMain() {
+      const input = document.getElementById("aiInputMain");
+      const messages = document.getElementById("aiMessagesMain");
+      const text = input.value.trim();
 
-  if (text === "") return;
+      if (text === "") return;
 
-  addMessage(messages, text, "user");
-  input.value = "";
+      addMessage(messages, text, "user");
+      input.value = "";
 
-  addMessage(messages, "Đang suy nghĩ...", "bot");
+      addMessage(messages, "Đang suy nghĩ...", "bot");
 
-  const loadingMessage = messages.lastElementChild;
-  const answer = await getRealAIReply(text);
+      const loadingMessage = messages.lastElementChild;
+      const answer = await getRealAIReply(text);
 
-  loadingMessage.textContent = answer;
-  messages.scrollTop = messages.scrollHeight;
-}
+      loadingMessage.textContent = answer;
+      messages.scrollTop = messages.scrollHeight;
+    }
 
-    function addMessage(container, text, type) {
+function addMessage(container, text, type) {
       const message = document.createElement("div");
       message.className = "ai-message " + type;
       message.textContent = text;
@@ -1186,28 +1185,34 @@
     }
 
     async function getRealAIReply(text) {
-  try {
-    const response = await fetch("/api/ai", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        question: text
-      })
-    });
+      try {
+        const response = await fetch("/api/ai", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            question: text
+          })
+        });
 
-    const data = await response.json();
+        let data = null;
 
-    if (!data.success) {
-      return data.message || "AI đang lỗi, thử lại sau nhé.";
+        try {
+          data = await response.json();
+        } catch (jsonError) {
+          return "AI đang trả về dữ liệu không hợp lệ. Kiểm tra Render Logs để xem lỗi server.";
+        }
+
+        if (!response.ok || !data.success) {
+          return data.message || "AI đang lỗi, thử lại sau nhé.";
+        }
+
+        return data.answer || "AI chưa trả lời được câu này.";
+      } catch (error) {
+        return "Không kết nối được AI thật. Kiểm tra lại server hoặc API key nhé.";
+      }
     }
-
-    return data.answer || "AI chưa trả lời được câu này.";
-  } catch (error) {
-    return "Không kết nối được AI thật. Kiểm tra lại server hoặc API key nhé.";
-  }
-}
 
 
     function getAIReply(text) {
