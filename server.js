@@ -1003,7 +1003,7 @@ app.post("/api/ai", async function (req, res) {
   ) {
     return res.status(429).json({
       success: false,
-      message: "AI đang hết lượt miễn phí tạm thời. Đợi khoảng 30 giây rồi hỏi lại nhé."
+      message: "AI đang hết lượt miễn phí tạm thời. Đợi một chút rồi hỏi lại nhé."
     });
   }
 
