@@ -1145,10 +1145,9 @@ app.post("/api/ai", async function (req, res) {
     console.error("Cerebras fallback lỗi:", fallbackError.message);
 
     return res.status(429).json({
-      success: false,
-      message:
-        "Gemini đang hết lượt miễn phí và Cerebras dự phòng cũng chưa dùng được. Kiểm tra CEREBRAS_API_KEY hoặc thử lại sau nhé."
-    });
+  success: false,
+  message: "Cerebras lỗi thật: " + fallbackError.message
+});
   }
 }
 
