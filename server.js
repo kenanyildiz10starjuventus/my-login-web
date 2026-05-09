@@ -1032,7 +1032,12 @@ app.post("/api/ai", async function (req, res) {
         "AI đang hết lượt miễn phí tạm thời. Hãy thử lại sau khoảng " +
         retrySeconds +
         " giây, lúc " +
-        retryAt.toLocaleTimeString("vi-VN") +
+        retryAt.toLocaleTimeString("vi-VN", {
+  timeZone: "Asia/Ho_Chi_Minh",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit"
+}) +
         "."
     });
   }
