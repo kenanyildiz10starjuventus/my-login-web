@@ -1014,7 +1014,7 @@ async function callCerebrasAI(question) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "gpt-oss-120b",
+        model: "llama-3.3-70b",
         messages: [
           {
             role: "system",
