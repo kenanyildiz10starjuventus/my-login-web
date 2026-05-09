@@ -952,7 +952,7 @@ async function callOpenRouterAI(question) {
         "X-Title": "QUANOS AI"
       },
       body: JSON.stringify({
-        model: "openrouter/free",
+        model: "qwen/qwen3-8b:free",
         messages: [
           {
             role: "system",
@@ -1077,8 +1077,7 @@ app.post("/api/ai", async function (req, res) {
     return res.json({
       success: true,
       answer:
-        fallbackAnswer +
-        "\n\n(Đang trả lời bằng OpenRouter dự phòng vì Gemini đang hết lượt miễn phí.)"
+        fallbackAnswer 
     });
   } catch (fallbackError) {
     console.error("OpenRouter fallback lỗi:", fallbackError.message);
