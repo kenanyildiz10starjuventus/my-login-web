@@ -952,7 +952,7 @@ app.post("/api/ai", async function (req, res) {
     }
 
     const geminiResponse = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" +
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" +
         process.env.GEMINI_API_KEY,
       {
         method: "POST",
@@ -987,14 +987,16 @@ app.post("/api/ai", async function (req, res) {
     const data = await geminiResponse.json();
 
     if (!geminiResponse.ok) {
-      console.error("Lỗi Gemini:", data);
+  console.error("Lỗi Gemini:", JSON.stringify(data, null, 2));
 
-      return res.status(500).json({
-        success: false,
-        message: "Gemini AI đang lỗi hoặc hết quota miễn phí."
-      });
-    }
-
+  return res.status(500).json({
+    success: false,
+    message:
+      data.error && data.error.message
+        ? data.error.message
+        : "Gemini AI đang lỗi hoặc hết quota miễn phí."
+  });
+}
     const answer =
       data &&
       data.candidates &&
