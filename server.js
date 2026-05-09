@@ -967,10 +967,11 @@ app.post("/api/ai", async function (req, res) {
                 {
                   text:
                     "Bạn là QUANOS AI, trợ lý thông minh trong website cá nhân của Quân. " +
-                    "Hãy trả lời bằng tiếng Việt, tự nhiên, dễ hiểu, không quá dài. " +
+                    "Hãy trả lời bằng tiếng Việt, tự nhiên, dễ hiểu, trả lời đầy đủ ý, không tự cắt ngang câu. " +
                     "Nếu người dùng hỏi về code/web thì hướng dẫn từng bước rõ ràng. " +
                     "Nếu không chắc thì hỏi lại, không bịa. " +
                     "Câu hỏi của người dùng: " +
+                    "Nếu câu trả lời dài, hãy chia thành các ý ngắn rõ ràng nhưng vẫn phải kết luận trọn vẹn. " +
                     question
                 }
               ]
@@ -978,7 +979,7 @@ app.post("/api/ai", async function (req, res) {
           ],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 700
+            maxOutputTokens: 2048
           }
         })
       }

@@ -471,7 +471,6 @@
       <div class="nav-links">
         <a href="/welcome.html" class="nav-cta">Trang chủ</a>
         <a href="/chat.html">Chat</a>
-        <a href="/private-chat.html">Chat riêng</a>
         <a href="/love.html">Love</a>
         <a href="/users.html">Users</a>
       </div>
@@ -542,12 +541,6 @@
         value.includes("welcome")
       ) {
         window.location.href = "/welcome.html";
-      } else if (
-        value.includes("chat riêng") ||
-        value.includes("chat rien") ||
-        value.includes("private")
-      ) {
-        window.location.href = "/private-chat.html";
       } else if (value.includes("chat")) {
         window.location.href = "/chat.html";
       } else if (
@@ -572,7 +565,7 @@
       } else if (value.includes("ai")) {
         document.getElementById("aiInputMain").focus();
       } else {
-        alert("Chưa có lệnh này. Thử: dashboard, chat, chat riêng, love, users, login.");
+        alert("Chưa có lệnh này. Thử: trang chủ, chat, love, users.");
       }
     }
 
