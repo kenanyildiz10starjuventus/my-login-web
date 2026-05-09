@@ -1044,10 +1044,10 @@ async function callCerebrasAI(question) {
     console.error("Lỗi Cerebras:", JSON.stringify(data, null, 2));
 
     throw new Error(
-      data.error && data.error.message
-        ? data.error.message
-        : "Cerebras đang lỗi."
-    );
+  data.error && data.error.message
+    ? data.error.message
+    : JSON.stringify(data)
+);
   }
 
   const answer =
