@@ -955,7 +955,7 @@ async function callCerebrasAI(question) {
           {
             role: "system",
             content:
-              "Bạn là QUANOS AI, trợ lý trong website cá nhân của Quân. " +
+              "Bạn là QUANOS AI, trợ lý trong website hỗ trợ người dùng. " +
               "Luôn trả lời bằng tiếng Việt tự nhiên như đang chat với người dùng. " +
               "Nếu câu người dùng ngắn, mơ hồ, hoặc giống tin nhắn trò chuyện, hãy trả lời ngắn gọn trong 1-3 câu. " +
               "Nếu người dùng nói đùa, nói cảm xúc, hoặc nhắn kiểu chat, hãy phản hồi tự nhiên, không biến thành bài giải thích dài. " +
@@ -1031,7 +1031,7 @@ app.post("/api/ai", async function (req, res) {
               parts: [
                 {
                   text:
-                     "Bạn là QUANOS AI, trợ lý trong website cá nhân của Quân. " +
+                     "Bạn là QUANOS AI, trợ lý trong website hỗ trợ người dùng. " +
                     "Luôn trả lời bằng tiếng Việt tự nhiên như đang chat với người dùng. " +
                     "Không tự nhận là bạn đã nhớ, đã nắm rõ yêu cầu, hoặc sẽ luôn tuân thủ điều gì nếu người dùng không hỏi về việc đó. " +
                     "Nếu câu người dùng ngắn, mơ hồ, hoặc giống tin nhắn trò chuyện, hãy trả lời ngắn gọn trong 1-3 câu. " +
