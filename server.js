@@ -936,70 +936,6 @@ app.post("/api/messages/:id/reactions", async function (req, res) {
   }
 });
 
-async function callOpenRouterAI(question) {
-  if (!process.env.OPENROUTER_API_KEY) {
-    throw new Error("Server chưa có OPENROUTER_API_KEY.");
-  }
-
-  const openRouterResponse = await fetch(
-    "https://openrouter.ai/api/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + process.env.OPENROUTER_API_KEY,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://nthxinhgai.onrender.com",
-        "X-Title": "QUANOS AI"
-      },
-      body: JSON.stringify({
-        model: "deepseek/deepseek-chat-v3-0324:free",
-        messages: [
-          {
-            role: "system",
-            content:
-              "Bạn là QUANOS AI, trợ lý trong website cá nhân của Quân. " +
-              "Luôn trả lời bằng tiếng Việt tự nhiên như đang chat với người dùng. " +
-              "Nếu câu người dùng ngắn, mơ hồ, hoặc giống tin nhắn trò chuyện, hãy trả lời ngắn gọn trong 1-3 câu. " +
-              "Nếu người dùng nói đùa, nói cảm xúc, hoặc nhắn kiểu chat, hãy phản hồi tự nhiên, không biến thành bài giải thích dài. " +
-              "Chỉ trả lời dài khi người dùng hỏi về code, lỗi, web, hướng dẫn từng bước, hoặc yêu cầu giải thích chi tiết. " +
-              "Nếu không chắc người dùng muốn hỏi gì, hãy hỏi lại một câu ngắn thay vì đoán quá xa. " +
-              "Không dùng markdown quá nhiều. Không tự cắt ngang câu."
-          },
-          {
-            role: "user",
-            content: question
-          }
-        ],
-        temperature: 0.8,
-        max_tokens: 1200
-      })
-    }
-  );
-
-  const data = await openRouterResponse.json();
-
-  if (!openRouterResponse.ok) {
-    console.error("Lỗi OpenRouter:", JSON.stringify(data, null, 2));
-
-    throw new Error(
-      data.error && data.error.message
-        ? data.error.message
-        : "OpenRouter đang lỗi."
-    );
-  }
-
-  const answer =
-    data &&
-    data.choices &&
-    data.choices[0] &&
-    data.choices[0].message &&
-    data.choices[0].message.content
-      ? data.choices[0].message.content
-      : "OpenRouter chưa trả lời được câu này.";
-
-  return answer;
-}
-
 async function callCerebrasAI(question) {
   if (!process.env.CEREBRAS_API_KEY) {
     throw new Error("Server chưa có CEREBRAS_API_KEY.");
@@ -1146,7 +1082,7 @@ app.post("/api/ai", async function (req, res) {
 
     return res.status(429).json({
   success: false,
-  message: "Cerebras lỗi thật: " + fallbackError.message
+  message: "AI dự phòng đang bận hoặc bị lỗi. Bạn thử lại sau một chút nhé."
 });
   }
 }
@@ -1176,7 +1112,7 @@ app.post("/api/ai", async function (req, res) {
 
     res.status(500).json({
       success: false,
-      message: "Server không gọi được Gemini AI."
+      message: "Server không gọi được AI. Bạn thử lại sau nhé."
     });
   }
 });
