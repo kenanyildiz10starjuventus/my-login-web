@@ -546,16 +546,31 @@
       padding: 18px;
       display: flex;
       gap: 10px;
-      align-items: center;
+      align-items: flex-end;
     }
 
-    .chat-input input {
-      flex: 1;
-      padding: 15px 16px;
-      border-radius: 18px;
-      font-size: 16px;
-      min-width: 0;
-    }
+    .chat-input textarea {
+  flex: 1;
+  min-width: 0;
+  min-height: 54px;
+  max-height: 140px;
+  padding: 15px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.08);
+  color: white;
+  outline: none;
+  font-size: 16px;
+  line-height: 1.5;
+  resize: none;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chat-input textarea::placeholder {
+  color: rgba(255,255,255,0.5);
+}
 
     .chat-input button {
       border: none;
@@ -704,9 +719,10 @@
         padding: 14px;
       }
 
-      .chat-input input {
-        padding: 14px;
-      }
+      .chat-input textarea {
+  padding: 14px;
+  min-height: 44px;
+}
 
       .chat-input button {
         padding: 14px;
@@ -782,7 +798,7 @@
       </div>
 
       <div class="chat-input">
-        <input id="messageInput" placeholder="Nhập tin nhắn..." />
+        <textarea id="messageInput" placeholder="Nhập tin nhắn..." rows="1"></textarea>
         <button type="button" id="emojiToggleBtn" class="emoji-toggle-btn">😊</button>
         <button type="button" class="send-btn" onclick="sendMessage()">Gửi</button>
       </div>
@@ -1178,9 +1194,10 @@
     }
 
     function addEmoji(emoji) {
-      messageInput.value += emoji;
-      messageInput.focus();
-    }
+  messageInput.value += emoji;
+  autoResizeMessageInput();
+  messageInput.focus();
+}
 
     emojiToggleBtn.addEventListener("click", function (event) {
       event.stopPropagation();
@@ -1225,7 +1242,8 @@
       cancelReply();
 
       messageInput.value = "";
-      statusText.textContent = "";
+autoResizeMessageInput();
+statusText.textContent = "";
     }
 
     async function reactToMessage(messageId, emoji) {
@@ -1471,19 +1489,20 @@
     });
 
     messageInput.addEventListener("keydown", function (event) {
-      if (event.key === "Enter") {
-        sendMessage();
-        return;
-      }
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    sendMessage();
+    return;
+  }
 
-      socket.emit("typing", usernameInput.value.trim());
+  socket.emit("typing", usernameInput.value.trim());
 
-      clearTimeout(typingTimer);
+  clearTimeout(typingTimer);
 
-      typingTimer = setTimeout(function () {
-        socket.emit("stop_typing");
-      }, 1000);
-    });
+  typingTimer = setTimeout(function () {
+    socket.emit("stop_typing");
+  }, 1000);
+});
 
     searchInput.addEventListener("input", applySearch);
 
@@ -1499,6 +1518,16 @@
     });
 
     loadMessages();
+
+    function autoResizeMessageInput() {
+  messageInput.style.height = "auto";
+  messageInput.style.height = Math.min(messageInput.scrollHeight, 140) + "px";
+}
+
+messageInput.addEventListener("input", function () {
+  autoResizeMessageInput();
+});
+
   </script>
 </body>
 </html>
