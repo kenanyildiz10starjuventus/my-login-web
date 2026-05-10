@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <title>Phòng chat</title>
 
   <style>
@@ -31,17 +30,17 @@
       height: min(760px, 92vh);
       border-radius: 30px;
       overflow: hidden;
-      background: rgba(255,255,255,0.09);
-      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255, 255, 255, 0.09);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(22px);
-      box-shadow: 0 30px 100px rgba(0,0,0,0.45);
+      box-shadow: 0 30px 100px rgba(0, 0, 0, 0.45);
       display: flex;
       flex-direction: column;
     }
 
     .chat-header {
       padding: 22px 24px;
-      border-bottom: 1px solid rgba(255,255,255,0.12);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -49,21 +48,41 @@
     }
 
     .chat-header h1 {
-      margin: 0 0 6px;
+      margin: 0;
       font-size: 28px;
     }
 
-    .chat-header p {
-      margin: 0;
-      color: #c7d2ff;
-      font-size: 14px;
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .search-toggle-btn {
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: white;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    .search-toggle-btn:hover,
+    .search-toggle-btn.active {
+      background: rgba(0, 212, 255, 0.22);
+      border-color: rgba(0, 212, 255, 0.35);
     }
 
     .back-btn {
       text-decoration: none;
       color: white;
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.16);
       padding: 12px 16px;
       border-radius: 999px;
       font-weight: bold;
@@ -75,8 +94,8 @@
       display: flex;
       gap: 12px;
       align-items: center;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
     }
 
     .name-box label {
@@ -85,15 +104,53 @@
       white-space: nowrap;
     }
 
+    .name-box input,
+    .search-box input,
+    .chat-input input {
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      outline: none;
+    }
+
     .name-box input {
       flex: 1;
       padding: 12px 14px;
       border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.08);
-      color: white;
-      outline: none;
       font-size: 15px;
+    }
+
+    .search-box {
+      padding: 12px 18px;
+      display: none;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .search-box.show {
+      display: flex;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 12px 14px;
+      border-radius: 16px;
+      font-size: 14px;
+    }
+
+    .search-box button {
+      border: none;
+      padding: 0 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.12);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .search-box button:hover {
+      background: rgba(255, 255, 255, 0.2);
     }
 
     .messages {
@@ -105,12 +162,24 @@
       gap: 18px;
     }
 
+    .date-separator {
+      align-self: center;
+      margin: 14px 0;
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #dce6ff;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    /* Quan trọng: row giới hạn độ rộng tối đa, còn bubble tự fit nội dung */
     .message-row {
-  width: fit-content;
-  max-width: 78%;
-  display: flex;
-  flex-direction: column;
-}
+      max-width: min(78%, 720px);
+      display: flex;
+      flex-direction: column;
+    }
 
     .message-row.mine {
       align-self: flex-end;
@@ -120,97 +189,6 @@
     .message-row.other {
       align-self: flex-start;
       text-align: left;
-    }
-
-    .message-meta {
-      font-size: 12px;
-      color: #b7c3e8;
-      margin-bottom: 5px;
-      padding: 0 6px;
-    }
-
-    .bubble {
-  display: block;
-  width: 100%;
-  padding: 16px 20px;
-  border-radius: 14px;
-  line-height: 1.55;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  text-align: left;
-}
-
-   .bubble-wrap {
-  position: relative;
-  display: block;
-  width: 100%;
-  max-width: 100%;
-}
-
-    .mine .bubble {
-      background: linear-gradient(135deg, #7c3cff, #00d4ff);
-      color: white;
-      border-bottom-right-radius: 6px;
-    }
-
-    .other .bubble {
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: #f5f7ff;
-      border-bottom-left-radius: 6px;
-    }
-
-    .status {
-      padding: 0 24px 14px;
-      color: #ffd6e8;
-      font-size: 14px;
-      min-height: 22px;
-    }
-
-    .chat-input-wrap {
-      position: relative;
-      border-top: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.05);
-    }
-
-    .chat-input {
-      padding: 18px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .chat-input input {
-      flex: 1;
-      padding: 15px 16px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.08);
-      color: white;
-      outline: none;
-      font-size: 16px;
-      min-width: 0;
-    }
-
-    .chat-input button {
-      border: none;
-      padding: 0 24px;
-      border-radius: 18px;
-      background: linear-gradient(135deg, #7c3cff, #00d4ff);
-      color: white;
-      font-weight: 900;
-      font-size: 15px;
-      cursor: pointer;
-      box-shadow: 0 14px 35px rgba(0,212,255,0.22);
-    }
-
-    .send-btn {
-      height: 54px;
-    }
-
-    input::placeholder {
-      color: rgba(255,255,255,0.5);
     }
 
     .message-line {
@@ -237,48 +215,164 @@
     }
 
     .message-content {
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  min-width: 0;
-  max-width: 100%;
-}
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      min-width: 0;
+      max-width: 100%;
+      width: fit-content;
+    }
+
     .message-row.mine .message-content {
       align-items: flex-end;
     }
 
-   .message-tools {
-  margin-top: 5px;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-3px);
-  transition: 0.18s ease;
-}
+    .message-row.other .message-content {
+      align-items: flex-start;
+    }
 
-.message-row.has-reactions .message-tools {
-  margin-top: 18px;
-}
-
-.message-row:hover .message-tools {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0);
-}
-
-    .delete-message-btn {
-      border: none;
-      background: rgba(255, 80, 120, 0.18);
-      color: #ffd6e1;
-      border: 1px solid rgba(255, 120, 160, 0.25);
-      padding: 5px 9px;
-      border-radius: 999px;
+    .message-meta {
       font-size: 12px;
+      color: #b7c3e8;
+      margin-bottom: 5px;
+      padding: 0 6px;
+    }
+
+    .reply-preview {
+      max-width: 100%;
+      margin-bottom: 8px;
+      padding: 9px 11px;
+      border-left: 3px solid #00d4ff;
+      background: rgba(0, 212, 255, 0.12);
+      border-radius: 12px;
+      color: #dff8ff;
+      font-size: 13px;
+      line-height: 1.4;
+      cursor: pointer;
+      text-align: left;
+      overflow-wrap: anywhere;
+    }
+
+    .reply-preview strong {
+      color: #8eeaff;
+    }
+
+    .bubble-wrap {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    .bubble {
+      display: inline-block;
+      width: auto;
+      max-width: 100%;
+      min-width: 64px;
+      padding: 14px 18px;
+      border-radius: 16px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      text-align: left;
+    }
+
+    .mine .bubble {
+      background: linear-gradient(135deg, #7c3cff, #00d4ff);
+      color: white;
+      border-bottom-right-radius: 6px;
+    }
+
+    .other .bubble {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f5f7ff;
+      border-bottom-left-radius: 6px;
+    }
+
+    .message-reactions {
+      position: absolute;
+      bottom: -13px;
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      z-index: 5;
+      pointer-events: auto;
+      width: max-content;
+      max-width: 220px;
+    }
+
+    .message-row.other .message-reactions {
+      right: 4px;
+      left: auto;
+      justify-content: flex-end;
+    }
+
+    .message-row.mine .message-reactions {
+      left: 4px;
+      right: auto;
+      justify-content: flex-start;
+    }
+
+    .reaction-count {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: white;
+      font-size: 12px;
+      cursor: pointer;
+      transition: 0.18s;
+    }
+
+    .reaction-count:hover {
+      background: rgba(255, 255, 255, 0.22);
+      transform: translateY(-1px);
+    }
+
+    .message-tools {
+      margin-top: 5px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-3px);
+      transition: 0.18s ease;
+      white-space: nowrap;
+    }
+
+    .message-row.has-reactions .message-tools {
+      margin-top: 18px;
+    }
+
+    .message-row:hover .message-tools {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .reply-message-btn,
+    .edit-message-btn,
+    .delete-message-btn,
+    .reaction-open-btn {
       cursor: pointer;
       transition: 0.2s;
     }
 
-    .delete-message-btn:hover {
-      background: rgba(255, 80, 120, 0.32);
+    .reply-message-btn {
+      border: none;
+      background: rgba(255, 255, 255, 0.12);
+      color: #eaf6ff;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      margin-right: 6px;
+    }
+
+    .reply-message-btn:hover {
+      background: rgba(255, 255, 255, 0.22);
     }
 
     .edit-message-btn {
@@ -289,13 +383,99 @@
       padding: 5px 9px;
       border-radius: 999px;
       font-size: 12px;
-      cursor: pointer;
-      transition: 0.2s;
       margin-right: 6px;
     }
 
     .edit-message-btn:hover {
       background: rgba(0, 212, 255, 0.32);
+    }
+
+    .delete-message-btn {
+      border: none;
+      background: rgba(255, 80, 120, 0.18);
+      color: #ffd6e1;
+      border: 1px solid rgba(255, 120, 160, 0.25);
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+    }
+
+    .delete-message-btn:hover {
+      background: rgba(255, 80, 120, 0.32);
+    }
+
+    .reaction-wrapper {
+      position: relative;
+      display: inline-flex;
+      margin-right: 6px;
+      padding-top: 30px;
+      margin-top: -30px;
+    }
+
+    .reaction-open-btn {
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: white;
+      font-size: 15px;
+      padding: 0;
+    }
+
+    .reaction-open-btn:hover {
+      transform: scale(1.08);
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    .reaction-panel {
+      display: inline-flex;
+      position: absolute;
+      bottom: 32px;
+      left: 0;
+      gap: 6px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(30, 31, 50, 0.98);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.35);
+      z-index: 100;
+      backdrop-filter: blur(14px);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(4px) scale(0.98);
+      transition: opacity 0.12s ease, transform 0.12s ease;
+    }
+
+    .reaction-wrapper:hover .reaction-panel,
+    .reaction-panel:hover {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+
+    .message-row.mine .reaction-panel {
+      left: auto;
+      right: 0;
+    }
+
+    .reaction-btn {
+      border: none;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      cursor: pointer;
+      font-size: 19px;
+      transition: 0.18s;
+      padding: 0;
+    }
+
+    .reaction-btn:hover {
+      transform: scale(1.12);
+      background: rgba(255, 255, 255, 0.22);
     }
 
     .edited-label {
@@ -305,20 +485,20 @@
       opacity: 0.8;
     }
 
-    .reply-preview {
-      margin-bottom: 8px;
-      padding: 9px 11px;
-      border-left: 3px solid #00d4ff;
-      background: rgba(0, 212, 255, 0.12);
-      border-radius: 12px;
-      color: #dff8ff;
-      font-size: 13px;
-      line-height: 1.4;
-      cursor: pointer;
+    .typing-bottom {
+      margin: 0;
+      padding: 0 24px 8px;
+      color: #ffd6f1;
+      font-style: italic;
+      min-height: 20px;
+      font-size: 14px;
     }
 
-    .reply-preview strong {
-      color: #8eeaff;
+    .status {
+      padding: 0 24px 14px;
+      color: #ffd6e8;
+      font-size: 14px;
+      min-height: 22px;
     }
 
     .reply-box {
@@ -342,45 +522,55 @@
       font-size: 14px;
       line-height: 1.4;
       color: #dff8ff;
+      overflow-wrap: anywhere;
     }
 
     .reply-box button {
       border: none;
-      background: rgba(255,255,255,0.12);
+      background: rgba(255, 255, 255, 0.12);
       color: white;
       width: 30px;
       height: 30px;
       border-radius: 10px;
       cursor: pointer;
+      flex-shrink: 0;
     }
 
-    .reply-message-btn {
+    .chat-input-wrap {
+      position: relative;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .chat-input {
+      padding: 18px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 15px 16px;
+      border-radius: 18px;
+      font-size: 16px;
+      min-width: 0;
+    }
+
+    .chat-input button {
       border: none;
-      background: rgba(255, 255, 255, 0.12);
-      color: #eaf6ff;
-      border: 1px solid rgba(255,255,255,0.18);
-      padding: 5px 9px;
-      border-radius: 999px;
-      font-size: 12px;
+      padding: 0 24px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #7c3cff, #00d4ff);
+      color: white;
+      font-weight: 900;
+      font-size: 15px;
       cursor: pointer;
-      transition: 0.2s;
-      margin-right: 6px;
+      box-shadow: 0 14px 35px rgba(0, 212, 255, 0.22);
     }
 
-    .reply-message-btn:hover {
-      background: rgba(255,255,255,0.22);
-    }
-
-    .date-separator {
-      align-self: center;
-      margin: 14px 0;
-      padding: 7px 14px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      color: #dce6ff;
-      font-size: 13px;
-      font-weight: bold;
+    .send-btn {
+      height: 54px;
     }
 
     .emoji-toggle-btn {
@@ -388,8 +578,8 @@
       height: 46px;
       padding: 0 !important;
       border-radius: 15px !important;
-      border: 1px solid rgba(255,255,255,0.14) !important;
-      background: rgba(255,255,255,0.10) !important;
+      border: 1px solid rgba(255, 255, 255, 0.14) !important;
+      background: rgba(255, 255, 255, 0.10) !important;
       color: white !important;
       font-size: 21px !important;
       cursor: pointer;
@@ -402,7 +592,7 @@
 
     .emoji-toggle-btn:hover {
       transform: translateY(-1px);
-      background: rgba(255,255,255,0.18) !important;
+      background: rgba(255, 255, 255, 0.18) !important;
     }
 
     .emoji-toggle-btn.active {
@@ -421,8 +611,8 @@
       max-width: 330px;
       border-radius: 18px;
       background: rgba(30, 31, 50, 0.96);
-      border: 1px solid rgba(255,255,255,0.12);
-      box-shadow: 0 20px 45px rgba(0,0,0,0.35);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
       z-index: 50;
       backdrop-filter: blur(18px);
     }
@@ -450,11 +640,13 @@
       background: rgba(255, 255, 255, 0.2);
     }
 
-    #typingText {
-      margin-top: 4px;
-      color: #ffd6f1;
-      font-style: italic;
-      min-height: 18px;
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .search-highlight .bubble {
+      outline: 2px solid rgba(0, 212, 255, 0.65);
+      box-shadow: 0 0 22px rgba(0, 212, 255, 0.25);
     }
 
     .message-row.jump-highlight .bubble {
@@ -464,17 +656,9 @@
     }
 
     @keyframes jumpFlash {
-      0% {
-        transform: scale(1);
-      }
-
-      35% {
-        transform: scale(1.04);
-      }
-
-      100% {
-        transform: scale(1);
-      }
+      0% { transform: scale(1); }
+      35% { transform: scale(1.04); }
+      100% { transform: scale(1); }
     }
 
     @media (max-width: 700px) {
@@ -497,12 +681,27 @@
         align-items: stretch;
       }
 
+      .messages {
+        padding: 18px 14px;
+      }
+
       .message-row {
         max-width: 88%;
       }
 
+      .avatar {
+        width: 34px;
+        height: 34px;
+      }
+
+      .bubble {
+        min-width: 58px;
+        padding: 13px 16px;
+      }
+
       .chat-input {
         gap: 8px;
+        padding: 14px;
       }
 
       .chat-input input {
@@ -529,224 +728,21 @@
         max-width: 260px;
       }
     }
-
-    .typing-bottom {
-  margin: 0;
-  padding: 0 24px 8px;
-  color: #ffd6f1;
-  font-style: italic;
-  min-height: 20px;
-  font-size: 14px;
-}
-
-.search-box {
-  padding: 12px 18px;
-  display: none;
-  gap: 10px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.04);
-}
-
-.search-box.show {
-  display: flex;
-}
-
-.search-box input {
-  flex: 1;
-  padding: 12px 14px;
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.14);
-  background: rgba(255,255,255,0.08);
-  color: white;
-  outline: none;
-  font-size: 14px;
-}
-
-.search-box input::placeholder {
-  color: rgba(255,255,255,0.5);
-}
-
-.search-box button {
-  border: none;
-  padding: 0 14px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.12);
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.search-box button:hover {
-  background: rgba(255,255,255,0.2);
-}
-
-.search-highlight .bubble {
-  outline: 2px solid rgba(0, 212, 255, 0.65);
-  box-shadow: 0 0 22px rgba(0, 212, 255, 0.25);
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.search-toggle-btn {
-  border: none;
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.16);
-  color: white;
-  cursor: pointer;
-  font-size: 18px;
-  font-weight: bold;
-  transition: 0.2s;
-}
-
-.search-toggle-btn:hover,
-.search-toggle-btn.active {
-  background: rgba(0, 212, 255, 0.22);
-  border-color: rgba(0, 212, 255, 0.35);
-}
-
-
-.reaction-open-btn {
-  border: none;
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255,255,255,0.16);
-  color: white;
-  cursor: pointer;
-  font-size: 15px;
-  transition: 0.18s;
-  padding: 0;
-}
-
-.reaction-open-btn:hover {
-  transform: scale(1.08);
-  background: rgba(255,255,255,0.22);
-}
-
-.reaction-wrapper {
-  position: relative;
-  display: inline-flex;
-  margin-right: 6px;
-  padding-top: 30px;
-  margin-top: -30px;
-}
-
-.reaction-panel {
-  display: inline-flex;
-  position: absolute;
-  bottom: 32px;
-  left: 0;
-  gap: 6px;
-  padding: 8px 10px;
-  border-radius: 999px;
-  background: rgba(30, 31, 50, 0.98);
-  border: 1px solid rgba(255,255,255,0.12);
-  box-shadow: 0 14px 35px rgba(0,0,0,0.35);
-  z-index: 100;
-  backdrop-filter: blur(14px);
-
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(4px) scale(0.98);
-  transition: opacity 0.12s ease, transform 0.12s ease;
-}
-
-.reaction-wrapper:hover .reaction-panel,
-.reaction-panel:hover {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0) scale(1);
-}
-
-.message-row.mine .reaction-panel {
-  left: auto;
-  right: 0;
-}
-
-.reaction-btn {
-  border: none;
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255,255,255,0.16);
-  cursor: pointer;
-  font-size: 19px;
-  transition: 0.18s;
-  padding: 0;
-}
-
-.reaction-btn:hover {
-  transform: scale(1.12);
-  background: rgba(255,255,255,0.22);
-}
-
-.message-reactions {
-  position: absolute;
-  bottom: -13px;
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-  z-index: 5;
-  pointer-events: auto;
-  width: max-content;
-}
-/* Tin nhắn người khác: reaction ở góc dưới bên phải bubble */
-.message-row.other .message-reactions {
-  right: 4px;
-  left: auto;
-  justify-content: flex-end;
-}
-
-/* Tin nhắn của tôi: reaction ở góc dưới bên trái bubble */
-.message-row.mine .message-reactions {
-  left: 4px;
-  right: auto;
-  justify-content: flex-start;
-}
-.reaction-count {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.14);
-  color: white;
-  font-size: 12px;
-  cursor: pointer;
-  transition: 0.18s;
-}
-
-.reaction-count:hover {
-  background: rgba(255,255,255,0.22);
-  transform: translateY(-1px);
-}
-
-
   </style>
 </head>
 
 <body>
   <div class="chat-page">
-   <div class="chat-header">
-  <div>
-    <h1>Phòng chat 💬</h1>
-  </div>
+    <div class="chat-header">
+      <div>
+        <h1>Phòng chat 💬</h1>
+      </div>
 
-  <div class="header-actions">
-    <button type="button" id="searchToggleBtn" class="search-toggle-btn">🔍︎</button>
-    <a href="/welcome.html" class="back-btn">Trang chủ</a>
-  </div>
-</div>
+      <div class="header-actions">
+        <button type="button" id="searchToggleBtn" class="search-toggle-btn">🔍︎</button>
+        <a href="/welcome.html" class="back-btn">Trang chủ</a>
+      </div>
+    </div>
 
     <div class="name-box">
       <label for="usernameInput">Tên của bạn:</label>
@@ -754,17 +750,18 @@
     </div>
 
     <div class="search-box">
-  <input id="searchInput" placeholder="Tìm tin nhắn..." />
-  <button type="button" onclick="clearSearch()">Xóa</button>
-</div>
-<div class="messages" id="messages"></div>
+      <input id="searchInput" placeholder="Tìm tin nhắn..." />
+      <button type="button" onclick="clearSearch()">Xóa</button>
+    </div>
 
-   <p id="typingText" class="typing-bottom"></p>
-<div class="status" id="statusText"></div>
+    <div class="messages" id="messages"></div>
+
+    <p id="typingText" class="typing-bottom"></p>
+    <div class="status" id="statusText"></div>
 
     <div class="reply-box" id="replyBox">
       <div class="reply-box-text" id="replyBoxText"></div>
-      <button onclick="cancelReply()">×</button>
+      <button type="button" onclick="cancelReply()">×</button>
     </div>
 
     <div class="chat-input-wrap">
@@ -782,13 +779,12 @@
         <button class="emoji-btn" onclick="addEmoji('😈')">😈</button>
         <button class="emoji-btn" onclick="addEmoji('🎂')">🎂</button>
         <button class="emoji-btn" onclick="addEmoji('🤭')">🤭</button>
-
       </div>
 
       <div class="chat-input">
         <input id="messageInput" placeholder="Nhập tin nhắn..." />
         <button type="button" id="emojiToggleBtn" class="emoji-toggle-btn">😊</button>
-        <button class="send-btn" onclick="sendMessage()">Gửi</button>
+        <button type="button" class="send-btn" onclick="sendMessage()">Gửi</button>
       </div>
     </div>
   </div>
@@ -809,11 +805,9 @@
     const emojiPicker = document.getElementById("emojiPicker");
     const searchInput = document.getElementById("searchInput");
     const searchToggleBtn = document.getElementById("searchToggleBtn");
-const searchBox = document.querySelector(".search-box");
+    const searchBox = document.querySelector(".search-box");
 
-
-let allMessages = [];
-
+    let allMessages = [];
     let typingTimer = null;
     let replyingTo = null;
 
@@ -914,19 +908,17 @@ let allMessages = [];
       return name.trim().charAt(0).toUpperCase();
     }
 
-  
     function addMessage(item) {
       const myName = usernameInput.value.trim();
       const isMine = myName && item.username === myName;
 
       const row = document.createElement("div");
-row.className = "message-row " + (isMine ? "mine" : "other");
+      row.className = "message-row " + (isMine ? "mine" : "other");
+      row.dataset.messageId = item.id;
 
-if (item.reactions && item.reactions.length > 0) {
-  row.classList.add("has-reactions");
-}
-
-row.dataset.messageId = item.id;
+      if (item.reactions && item.reactions.length > 0) {
+        row.classList.add("has-reactions");
+      }
 
       const line = document.createElement("div");
       line.className = "message-line";
@@ -941,7 +933,6 @@ row.dataset.messageId = item.id;
       const meta = document.createElement("div");
       meta.className = "message-meta";
       meta.textContent = item.username + " • " + formatTime(item.created_at);
-
       content.appendChild(meta);
 
       if (item.reply_to_message) {
@@ -963,64 +954,66 @@ row.dataset.messageId = item.id;
       }
 
       const bubbleWrap = document.createElement("div");
-bubbleWrap.className = "bubble-wrap";
+      bubbleWrap.className = "bubble-wrap";
 
-const bubble = document.createElement("div");
-bubble.className = "bubble";
-bubble.innerHTML = escapeHTML(item.message);
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.innerHTML = escapeHTML(item.message);
 
-const reactionsBox = document.createElement("div");
-reactionsBox.className = "message-reactions";
-reactionsBox.dataset.reactionsFor = item.id;
+      const reactionsBox = document.createElement("div");
+      reactionsBox.className = "message-reactions";
+      reactionsBox.dataset.reactionsFor = item.id;
+      renderReactionBox(reactionsBox, item.reactions || [], item.id);
 
-renderReactionBox(reactionsBox, item.reactions || [], item.id);
-
-bubbleWrap.appendChild(bubble);
-bubbleWrap.appendChild(reactionsBox);
-content.appendChild(bubbleWrap);
+      bubbleWrap.appendChild(bubble);
+      bubbleWrap.appendChild(reactionsBox);
+      content.appendChild(bubbleWrap);
 
       const tools = document.createElement("div");
       tools.className = "message-tools";
 
       const reactionWrapper = document.createElement("div");
-reactionWrapper.className = "reaction-wrapper";
+      reactionWrapper.className = "reaction-wrapper";
 
-const reactionOpenBtn = document.createElement("button");
-reactionOpenBtn.className = "reaction-open-btn";
-reactionOpenBtn.textContent = "😊";
-reactionOpenBtn.title = "Reaction";
+      const reactionOpenBtn = document.createElement("button");
+      reactionOpenBtn.className = "reaction-open-btn";
+      reactionOpenBtn.type = "button";
+      reactionOpenBtn.textContent = "😊";
+      reactionOpenBtn.title = "Reaction";
 
-const reactionPanel = document.createElement("div");
-reactionPanel.className = "reaction-panel";
+      const reactionPanel = document.createElement("div");
+      reactionPanel.className = "reaction-panel";
 
-["❤️", "😂", "😢", "😯", "😡"].forEach(function (emoji) {
-  const reactionBtn = document.createElement("button");
-  reactionBtn.className = "reaction-btn";
-  reactionBtn.textContent = emoji;
-  reactionBtn.onclick = function (event) {
-  event.stopPropagation();
-  reactToMessage(item.id, emoji);
-};
+      ["❤️", "😂", "😢", "😯", "😡"].forEach(function (emoji) {
+        const reactionBtn = document.createElement("button");
+        reactionBtn.className = "reaction-btn";
+        reactionBtn.type = "button";
+        reactionBtn.textContent = emoji;
+        reactionBtn.onclick = function (event) {
+          event.stopPropagation();
+          reactToMessage(item.id, emoji);
+        };
 
-  reactionPanel.appendChild(reactionBtn);
-});
+        reactionPanel.appendChild(reactionBtn);
+      });
 
-reactionWrapper.appendChild(reactionOpenBtn);
-reactionWrapper.appendChild(reactionPanel);
-tools.appendChild(reactionWrapper);
+      reactionWrapper.appendChild(reactionOpenBtn);
+      reactionWrapper.appendChild(reactionPanel);
+      tools.appendChild(reactionWrapper);
 
       const replyBtn = document.createElement("button");
       replyBtn.className = "reply-message-btn";
+      replyBtn.type = "button";
       replyBtn.textContent = "↪";
       replyBtn.onclick = function () {
         startReply(item);
       };
-
       tools.appendChild(replyBtn);
 
       if (isMine) {
         const editBtn = document.createElement("button");
         editBtn.className = "edit-message-btn";
+        editBtn.type = "button";
         editBtn.textContent = "✏️";
         editBtn.onclick = function () {
           editMessage(item.id, item.message);
@@ -1028,6 +1021,7 @@ tools.appendChild(reactionWrapper);
 
         const deleteBtn = document.createElement("button");
         deleteBtn.className = "delete-message-btn";
+        deleteBtn.type = "button";
         deleteBtn.textContent = "🗑️";
         deleteBtn.onclick = function () {
           deleteMessage(item.id);
@@ -1041,9 +1035,7 @@ tools.appendChild(reactionWrapper);
       line.appendChild(avatar);
       line.appendChild(content);
       row.appendChild(line);
-
       messagesBox.appendChild(row);
-      messagesBox.scrollTop = messagesBox.scrollHeight;
     }
 
     async function loadMessages() {
@@ -1057,117 +1049,110 @@ tools.appendChild(reactionWrapper);
         }
 
         allMessages = data.messages;
-renderMessages(allMessages);
-
-statusText.textContent = "";
+        renderMessages(allMessages);
+        statusText.textContent = "";
       } catch (error) {
         statusText.textContent = "Không kết nối được server chat.";
       }
     }
 
-
-
     function renderMessages(messages) {
-  messagesBox.innerHTML = "";
+      messagesBox.innerHTML = "";
 
-  if (!messages || messages.length === 0) {
-    messagesBox.innerHTML = "";
-    return;
-  }
+      if (!messages || messages.length === 0) {
+        return;
+      }
 
-  let lastDateKey = "";
+      let lastDateKey = "";
 
-  messages.forEach(function (item) {
-    const currentDateKey = getDateKey(item.created_at);
+      messages.forEach(function (item) {
+        const currentDateKey = getDateKey(item.created_at);
 
-    if (currentDateKey !== lastDateKey) {
-      const separator = document.createElement("div");
-      separator.className = "date-separator";
-      separator.textContent = formatDateSeparator(item.created_at);
+        if (currentDateKey !== lastDateKey) {
+          const separator = document.createElement("div");
+          separator.className = "date-separator";
+          separator.textContent = formatDateSeparator(item.created_at);
+          messagesBox.appendChild(separator);
+          lastDateKey = currentDateKey;
+        }
 
-      messagesBox.appendChild(separator);
-      lastDateKey = currentDateKey;
+        addMessage(item);
+      });
+
+      messagesBox.scrollTop = messagesBox.scrollHeight;
     }
 
-    addMessage(item);
-  });
+    function renderReactionBox(reactionsBox, reactions, messageId) {
+      reactionsBox.innerHTML = "";
 
-  messagesBox.scrollTop = messagesBox.scrollHeight;
-}
+      if (!reactions || reactions.length === 0) {
+        return;
+      }
 
- function renderReactionBox(reactionsBox, reactions, messageId) {
-  reactionsBox.innerHTML = "";
+      reactions.forEach(function (reaction) {
+        const item = document.createElement("button");
+        item.className = "reaction-count";
+        item.type = "button";
+        item.textContent = reaction.emoji + " " + reaction.count;
 
-  if (!reactions || reactions.length === 0) {
-    return;
-  }
+        item.onclick = function (event) {
+          event.stopPropagation();
+          reactToMessage(messageId, reaction.emoji);
+        };
 
-  reactions.forEach(function (reaction) {
-    const item = document.createElement("button");
-    item.className = "reaction-count";
-    item.type = "button";
-    item.textContent = reaction.emoji + " " + reaction.count;
+        reactionsBox.appendChild(item);
+      });
+    }
 
-    item.onclick = function (event) {
-      event.stopPropagation();
-      reactToMessage(messageId, reaction.emoji);
-    };
+    function normalizeSearchText(text) {
+      return String(text || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d");
+    }
 
-    reactionsBox.appendChild(item);
-  });
-}
+    function applySearch() {
+      const keyword = normalizeSearchText(searchInput.value.trim());
 
-function normalizeSearchText(text) {
-  return String(text || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/g, "d");
-}
+      if (!keyword) {
+        renderMessages(allMessages);
+        statusText.textContent = "";
+        return;
+      }
 
-function applySearch() {
-  const keyword = normalizeSearchText(searchInput.value.trim());
+      const filteredMessages = allMessages.filter(function (item) {
+        const username = normalizeSearchText(item.username);
+        const message = normalizeSearchText(item.message);
+        const replyUsername = normalizeSearchText(item.reply_to_username);
+        const replyMessage = normalizeSearchText(item.reply_to_message);
 
-  if (!keyword) {
-    renderMessages(allMessages);
-    statusText.textContent = "";
-    return;
-  }
+        return (
+          username.includes(keyword) ||
+          message.includes(keyword) ||
+          replyUsername.includes(keyword) ||
+          replyMessage.includes(keyword)
+        );
+      });
 
-  const filteredMessages = allMessages.filter(function (item) {
-    const username = normalizeSearchText(item.username);
-    const message = normalizeSearchText(item.message);
-    const replyUsername = normalizeSearchText(item.reply_to_username);
-    const replyMessage = normalizeSearchText(item.reply_to_message);
+      renderMessages(filteredMessages);
 
-    return (
-      username.includes(keyword) ||
-      message.includes(keyword) ||
-      replyUsername.includes(keyword) ||
-      replyMessage.includes(keyword)
-    );
-  });
+      document.querySelectorAll(".message-row").forEach(function (row) {
+        row.classList.add("search-highlight");
+      });
 
-  renderMessages(filteredMessages);
+      if (filteredMessages.length === 0) {
+        statusText.textContent = "Không tìm thấy tin nhắn phù hợp.";
+      } else {
+        statusText.textContent = "Tìm thấy " + filteredMessages.length + " tin nhắn.";
+      }
+    }
 
-  const rows = document.querySelectorAll(".message-row");
-
-  rows.forEach(function (row) {
-    row.classList.add("search-highlight");
-  });
-
-  if (filteredMessages.length === 0) {
-    statusText.textContent = "Không tìm thấy tin nhắn phù hợp.";
-  } else {
-    statusText.textContent = "Tìm thấy " + filteredMessages.length + " tin nhắn.";
-  }
-}
-
-function clearSearch() {
-  searchInput.value = "";
-  statusText.textContent = "";
-  renderMessages(allMessages);
-}
+    function clearSearch() {
+      searchInput.value = "";
+      statusText.textContent = "";
+      renderMessages(allMessages);
+    }
 
     function startReply(item) {
       replyingTo = {
@@ -1192,10 +1177,11 @@ function clearSearch() {
       replyBoxText.textContent = "";
     }
 
-   function addEmoji(emoji) {
-  messageInput.value += emoji;
-  messageInput.focus();
-}
+    function addEmoji(emoji) {
+      messageInput.value += emoji;
+      messageInput.focus();
+    }
+
     emojiToggleBtn.addEventListener("click", function (event) {
       event.stopPropagation();
       emojiPicker.classList.toggle("show");
@@ -1206,10 +1192,10 @@ function clearSearch() {
       event.stopPropagation();
     });
 
-   document.addEventListener("click", function () {
-  emojiPicker.classList.remove("show");
-  emojiToggleBtn.classList.remove("active");
-});
+    document.addEventListener("click", function () {
+      emojiPicker.classList.remove("show");
+      emojiToggleBtn.classList.remove("active");
+    });
 
     function sendMessage() {
       const username = usernameInput.value.trim();
@@ -1243,36 +1229,34 @@ function clearSearch() {
     }
 
     async function reactToMessage(messageId, emoji) {
-  const username = usernameInput.value.trim();
+      const username = usernameInput.value.trim();
 
-  if (!username) {
-    statusText.textContent = "Bạn cần đăng nhập trước.";
-    return;
-  }
+      if (!username) {
+        statusText.textContent = "Bạn cần đăng nhập trước.";
+        return;
+      }
 
-  try {
-    const response = await fetch("/api/messages/" + messageId + "/reactions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        username: username,
-        emoji: emoji
-      })
-    });
+      try {
+        const response = await fetch("/api/messages/" + messageId + "/reactions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            username: username,
+            emoji: emoji
+          })
+        });
 
-    const data = await response.json();
+        const data = await response.json();
 
-    if (!data.success) {
-      statusText.textContent = data.message || "Không reaction được.";
+        if (!data.success) {
+          statusText.textContent = data.message || "Không reaction được.";
+        }
+      } catch (error) {
+        statusText.textContent = "Không gửi được reaction.";
+      }
     }
-  } catch (error) {
-    statusText.textContent = "Không gửi được reaction.";
-  }
-}
-
-
 
     async function editMessage(messageId, oldMessage) {
       const newMessage = prompt("Nhập nội dung mới:", oldMessage);
@@ -1375,104 +1359,6 @@ function clearSearch() {
       }
     }
 
-   socket.on("receive_message", function (message) {
-  message.reactions = message.reactions || [];
-  allMessages.push(message);
-
-  if (searchInput.value.trim()) {
-    applySearch();
-  } else {
-    renderMessages(allMessages);
-  }
-});
-
-    socket.on("user_typing", function (username) {
-      if (username && username !== usernameInput.value.trim()) {
-        typingText.textContent = username + " đang nhập...";
-      }
-    });
-
-    socket.on("user_stop_typing", function () {
-      typingText.textContent = "";
-    });
-
-   socket.on("delete_message", function (messageId) {
-  allMessages = allMessages.filter(function (item) {
-    return Number(item.id) !== Number(messageId);
-  });
-
-  if (searchInput.value.trim()) {
-    applySearch();
-  } else {
-    renderMessages(allMessages);
-  }
-});
-
-   socket.on("edit_message", function (updatedMessage) {
-  allMessages = allMessages.map(function (item) {
-    if (Number(item.id) === Number(updatedMessage.id)) {
-      return {
-  ...item,
-  ...updatedMessage,
-  reactions: item.reactions || []
-};
-    }
-
-    return item;
-  });
-
-  if (searchInput.value.trim()) {
-    applySearch();
-  } else {
-    renderMessages(allMessages);
-  }
-});
-
-socket.on("update_message_reactions", function (data) {
-  allMessages = allMessages.map(function (item) {
-    if (Number(item.id) === Number(data.messageId)) {
-      item.reactions = data.reactions;
-    }
-
-    return item;
-  });
-
-  const reactionsBox = document.querySelector(
-    '[data-reactions-for="' + data.messageId + '"]'
-  );
-
-  if (reactionsBox) {
-  renderReactionBox(reactionsBox, data.reactions, data.messageId);
-}
-
-const messageRow = document.querySelector(
-  '[data-message-id="' + data.messageId + '"]'
-);
-
-if (messageRow) {
-  if (data.reactions && data.reactions.length > 0) {
-    messageRow.classList.add("has-reactions");
-  } else {
-    messageRow.classList.remove("has-reactions");
-  }
-}
-});
-
-    messageInput.addEventListener("keydown", function (event) {
-      if (event.key === "Enter") {
-        sendMessage();
-        return;
-      }
-
-      socket.emit("typing", usernameInput.value.trim());
-
-      clearTimeout(typingTimer);
-
-      typingTimer = setTimeout(function () {
-        socket.emit("stop_typing");
-      }, 1000);
-    });
-
     function jumpToMessage(messageId) {
       if (!messageId) {
         return;
@@ -1502,18 +1388,115 @@ if (messageRow) {
       }, 1300);
     }
 
-  searchInput.addEventListener("input", applySearch);
-  searchToggleBtn.addEventListener("click", function () {
-  searchBox.classList.toggle("show");
-  searchToggleBtn.classList.toggle("active");
+    socket.on("receive_message", function (message) {
+      message.reactions = message.reactions || [];
+      allMessages.push(message);
 
-  if (searchBox.classList.contains("show")) {
-    searchInput.focus();
-  } else {
-    clearSearch();
-  }
-});
+      if (searchInput.value.trim()) {
+        applySearch();
+      } else {
+        renderMessages(allMessages);
+      }
+    });
 
+    socket.on("user_typing", function (username) {
+      if (username && username !== usernameInput.value.trim()) {
+        typingText.textContent = username + " đang nhập...";
+      }
+    });
+
+    socket.on("user_stop_typing", function () {
+      typingText.textContent = "";
+    });
+
+    socket.on("delete_message", function (messageId) {
+      allMessages = allMessages.filter(function (item) {
+        return Number(item.id) !== Number(messageId);
+      });
+
+      if (searchInput.value.trim()) {
+        applySearch();
+      } else {
+        renderMessages(allMessages);
+      }
+    });
+
+    socket.on("edit_message", function (updatedMessage) {
+      allMessages = allMessages.map(function (item) {
+        if (Number(item.id) === Number(updatedMessage.id)) {
+          return {
+            ...item,
+            ...updatedMessage,
+            reactions: item.reactions || []
+          };
+        }
+
+        return item;
+      });
+
+      if (searchInput.value.trim()) {
+        applySearch();
+      } else {
+        renderMessages(allMessages);
+      }
+    });
+
+    socket.on("update_message_reactions", function (data) {
+      allMessages = allMessages.map(function (item) {
+        if (Number(item.id) === Number(data.messageId)) {
+          return {
+            ...item,
+            reactions: data.reactions
+          };
+        }
+
+        return item;
+      });
+
+      const reactionsBox = document.querySelector('[data-reactions-for="' + data.messageId + '"]');
+
+      if (reactionsBox) {
+        renderReactionBox(reactionsBox, data.reactions, data.messageId);
+      }
+
+      const messageRow = document.querySelector('[data-message-id="' + data.messageId + '"]');
+
+      if (messageRow) {
+        if (data.reactions && data.reactions.length > 0) {
+          messageRow.classList.add("has-reactions");
+        } else {
+          messageRow.classList.remove("has-reactions");
+        }
+      }
+    });
+
+    messageInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        sendMessage();
+        return;
+      }
+
+      socket.emit("typing", usernameInput.value.trim());
+
+      clearTimeout(typingTimer);
+
+      typingTimer = setTimeout(function () {
+        socket.emit("stop_typing");
+      }, 1000);
+    });
+
+    searchInput.addEventListener("input", applySearch);
+
+    searchToggleBtn.addEventListener("click", function () {
+      searchBox.classList.toggle("show");
+      searchToggleBtn.classList.toggle("active");
+
+      if (searchBox.classList.contains("show")) {
+        searchInput.focus();
+      } else {
+        clearSearch();
+      }
+    });
 
     loadMessages();
   </script>
