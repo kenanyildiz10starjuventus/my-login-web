@@ -1073,10 +1073,9 @@ app.post("/api/ai", async function (req, res) {
     const fallbackAnswer = await callCerebrasAI(question);
 
     return res.json({
-      success: true,
-      answer:
-        fallbackAnswer 
-    });
+  success: true,
+  answer: fallbackAnswer + "\n\n(Cerebras AI dự phòng)"
+});
   } catch (fallbackError) {
     console.error("Cerebras fallback lỗi:", fallbackError.message);
 
@@ -1104,9 +1103,9 @@ app.post("/api/ai", async function (req, res) {
         : "AI chưa trả lời được câu này.";
 
     res.json({
-      success: true,
-      answer: answer
-    });
+  success: true,
+  answer: answer + "\n\n(Gemini AI)"
+});
   } catch (error) {
     console.error("Lỗi /api/ai:", error.message);
 
