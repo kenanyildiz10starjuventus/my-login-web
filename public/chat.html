@@ -549,22 +549,24 @@
       align-items: flex-end;
     }
 
-    .chat-input textarea {
+   .chat-input textarea {
   flex: 1;
   min-width: 0;
+  height: 54px;
   min-height: 54px;
   max-height: 140px;
-  padding: 15px 16px;
+  padding: 14px 16px;
   border-radius: 18px;
   border: 1px solid rgba(255,255,255,0.14);
   background: rgba(255,255,255,0.08);
   color: white;
   outline: none;
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 24px;
   resize: none;
-  overflow-y: auto;
+  overflow-y: hidden;
   white-space: pre-wrap;
+  overflow-wrap: break-word;
   word-break: break-word;
 }
 
@@ -1242,7 +1244,8 @@
       cancelReply();
 
       messageInput.value = "";
-autoResizeMessageInput();
+messageInput.style.height = "54px";
+messageInput.style.overflowY = "hidden";
 statusText.textContent = "";
     }
 
@@ -1519,9 +1522,19 @@ statusText.textContent = "";
 
     loadMessages();
 
-    function autoResizeMessageInput() {
-  messageInput.style.height = "auto";
-  messageInput.style.height = Math.min(messageInput.scrollHeight, 140) + "px";
+   function autoResizeMessageInput() {
+  const minHeight = 54;
+  const maxHeight = 140;
+
+  messageInput.style.height = minHeight + "px";
+  messageInput.style.overflowY = "hidden";
+
+  const newHeight = Math.min(messageInput.scrollHeight, maxHeight);
+  messageInput.style.height = Math.max(newHeight, minHeight) + "px";
+
+  if (messageInput.scrollHeight > maxHeight) {
+    messageInput.style.overflowY = "auto";
+  }
 }
 
 messageInput.addEventListener("input", function () {
