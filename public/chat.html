@@ -106,7 +106,7 @@
 
     .name-box input,
     .search-box input,
-    .chat-input input {
+    .chat-input textarea {
       border: 1px solid rgba(255, 255, 255, 0.14);
       background: rgba(255, 255, 255, 0.08);
       color: white;
@@ -174,7 +174,6 @@
       font-weight: bold;
     }
 
-    /* Quan trọng: row giới hạn độ rộng tối đa, còn bubble tự fit nội dung */
     .message-row {
       max-width: min(78%, 720px);
       display: flex;
@@ -549,30 +548,49 @@
       align-items: flex-end;
     }
 
-   .chat-input textarea {
-  flex: 1;
-  min-width: 0;
-  height: 54px;
-  min-height: 54px;
-  max-height: 140px;
-  padding: 14px 16px;
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,0.14);
-  background: rgba(255,255,255,0.08);
-  color: white;
-  outline: none;
-  font-size: 16px;
-  line-height: 24px;
-  resize: none;
-  overflow-y: hidden;
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-  word-break: break-word;
+    .chat-input textarea {
+      flex: 1;
+      min-width: 0;
+      height: 54px;
+      min-height: 54px;
+      max-height: 140px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      font-size: 16px;
+      line-height: 24px;
+      resize: none;
+      overflow-y: hidden;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .chat-input textarea {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
 }
 
-.chat-input textarea::placeholder {
-  color: rgba(255,255,255,0.5);
+.chat-input textarea::-webkit-scrollbar {
+  width: 5px;
 }
+
+.chat-input textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-input textarea::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+
+.chat-input textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+    .chat-input textarea::placeholder,
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
 
     .chat-input button {
       border: none;
@@ -657,10 +675,6 @@
       background: rgba(255, 255, 255, 0.2);
     }
 
-    input::placeholder {
-      color: rgba(255, 255, 255, 0.5);
-    }
-
     .search-highlight .bubble {
       outline: 2px solid rgba(0, 212, 255, 0.65);
       box-shadow: 0 0 22px rgba(0, 212, 255, 0.25);
@@ -722,9 +736,11 @@
       }
 
       .chat-input textarea {
-  padding: 14px;
-  min-height: 44px;
-}
+        height: 44px;
+        min-height: 44px;
+        padding: 10px 14px;
+        line-height: 22px;
+      }
 
       .chat-input button {
         padding: 14px;
@@ -924,6 +940,22 @@
       }
 
       return name.trim().charAt(0).toUpperCase();
+    }
+
+    function autoResizeMessageInput() {
+      const computedStyle = getComputedStyle(messageInput);
+      const minHeight = parseInt(computedStyle.minHeight, 10) || 54;
+      const maxHeight = 140;
+
+      messageInput.style.height = minHeight + "px";
+      messageInput.style.overflowY = "hidden";
+
+      const newHeight = Math.min(messageInput.scrollHeight, maxHeight);
+      messageInput.style.height = Math.max(newHeight, minHeight) + "px";
+
+      if (messageInput.scrollHeight > maxHeight) {
+        messageInput.style.overflowY = "auto";
+      }
     }
 
     function addMessage(item) {
@@ -1196,10 +1228,10 @@
     }
 
     function addEmoji(emoji) {
-  messageInput.value += emoji;
-  autoResizeMessageInput();
-  messageInput.focus();
-}
+      messageInput.value += emoji;
+      autoResizeMessageInput();
+      messageInput.focus();
+    }
 
     emojiToggleBtn.addEventListener("click", function (event) {
       event.stopPropagation();
@@ -1244,9 +1276,8 @@
       cancelReply();
 
       messageInput.value = "";
-messageInput.style.height = "54px";
-messageInput.style.overflowY = "hidden";
-statusText.textContent = "";
+      autoResizeMessageInput();
+      statusText.textContent = "";
     }
 
     async function reactToMessage(messageId, emoji) {
@@ -1492,20 +1523,24 @@ statusText.textContent = "";
     });
 
     messageInput.addEventListener("keydown", function (event) {
-  if (event.key === "Enter" && !event.shiftKey) {
-    event.preventDefault();
-    sendMessage();
-    return;
-  }
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+        return;
+      }
 
-  socket.emit("typing", usernameInput.value.trim());
+      socket.emit("typing", usernameInput.value.trim());
 
-  clearTimeout(typingTimer);
+      clearTimeout(typingTimer);
 
-  typingTimer = setTimeout(function () {
-    socket.emit("stop_typing");
-  }, 1000);
-});
+      typingTimer = setTimeout(function () {
+        socket.emit("stop_typing");
+      }, 1000);
+    });
+
+    messageInput.addEventListener("input", function () {
+      autoResizeMessageInput();
+    });
 
     searchInput.addEventListener("input", applySearch);
 
@@ -1521,26 +1556,7 @@ statusText.textContent = "";
     });
 
     loadMessages();
-
-   function autoResizeMessageInput() {
-  const minHeight = 54;
-  const maxHeight = 140;
-
-  messageInput.style.height = minHeight + "px";
-  messageInput.style.overflowY = "hidden";
-
-  const newHeight = Math.min(messageInput.scrollHeight, maxHeight);
-  messageInput.style.height = Math.max(newHeight, minHeight) + "px";
-
-  if (messageInput.scrollHeight > maxHeight) {
-    messageInput.style.overflowY = "auto";
-  }
-}
-
-messageInput.addEventListener("input", function () {
-  autoResizeMessageInput();
-});
-
+    autoResizeMessageInput();
   </script>
 </body>
 </html>
