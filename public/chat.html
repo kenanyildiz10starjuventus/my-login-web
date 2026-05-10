@@ -129,12 +129,17 @@
     }
 
     .bubble {
-      padding: 13px 15px;
-      border-radius: 18px;
-      line-height: 1.55;
-      word-wrap: break-word;
-      white-space: pre-wrap;
-    }
+  display: inline-block;
+  width: fit-content;
+  max-width: min(100%, 560px);
+  padding: 13px 15px;
+  border-radius: 18px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-align: center;
+}
 
     .bubble-wrap {
   position: relative;
