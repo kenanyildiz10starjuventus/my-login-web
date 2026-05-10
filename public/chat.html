@@ -237,11 +237,12 @@
     }
 
     .message-content {
-      display: flex;
-      flex-direction: column;
-      position: relative;
-    }
-
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+}
     .message-row.mine .message-content {
       align-items: flex-end;
     }
