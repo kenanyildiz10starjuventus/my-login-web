@@ -29,11 +29,49 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
     }
 
     h1 {
       margin: 0;
       font-size: 32px;
+    }
+
+    /* ── ONLINE BADGE ── */
+    .online-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: #e8fff4;
+      border: 1px solid #b6f0d4;
+      font-size: 13px;
+      font-weight: bold;
+      color: #1a8c54;
+    }
+
+    .online-dot-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #00c96b;
+      box-shadow: 0 0 5px #00c96b;
+      animation: pulse 1.6s infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
     }
 
     .back-btn {
@@ -45,9 +83,7 @@
       font-weight: bold;
     }
 
-    .back-btn:hover {
-      background: #4849d8;
-    }
+    .back-btn:hover { background: #4849d8; }
 
     .table-box {
       background: white;
@@ -73,11 +109,10 @@
     td {
       padding: 14px;
       border-bottom: 1px solid #eee;
+      vertical-align: middle;
     }
 
-    tr:last-child td {
-      border-bottom: none;
-    }
+    tr:last-child td { border-bottom: none; }
 
     .empty {
       text-align: center;
@@ -86,37 +121,108 @@
       font-weight: bold;
     }
 
+    /* ── STATUS CELL ── */
+    .status-cell {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+
+    .status-dot.online {
+      background: #00c96b;
+      box-shadow: 0 0 6px #00c96b;
+      animation: pulse 1.6s infinite;
+    }
+
+    .status-dot.offline {
+      background: #ccc;
+    }
+
+    .status-label.online { color: #1a8c54; }
+    .status-label.offline { color: #999; }
+
+    /* ── NAME CELL ── */
+    .name-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5b5cf0, #928dab);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 15px;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .user-avatar-dot {
+      position: absolute;
+      bottom: 1px;
+      right: 1px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid white;
+      background: #ccc;
+      transition: background 0.3s;
+    }
+
+    .user-avatar-dot.online {
+      background: #00c96b;
+      box-shadow: 0 0 4px #00c96b;
+    }
+
     .message {
       margin-top: 18px;
       text-align: center;
       font-weight: bold;
       color: red;
     }
+
     .delete-btn {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
-  background: #ff5c7a;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-}
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      background: #ff5c7a;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
-.delete-btn:hover {
-  background: #e84866;
-}
-
-.delete-btn:disabled {
-  background: #aaa;
-  cursor: not-allowed;
-}
+    .delete-btn:hover { background: #e84866; }
+    .delete-btn:disabled { background: #aaa; cursor: not-allowed; }
   </style>
 </head>
 
 <body>
   <div class="page">
     <div class="top">
-      <h1>Danh sách user</h1>
+      <div class="top-left">
+        <h1>Danh sách user</h1>
+        <!-- ONLINE BADGE -->
+        <div class="online-badge">
+          <div class="online-dot-pulse"></div>
+          <span id="onlineCount">0</span> đang online
+        </div>
+      </div>
       <a href="/welcome.html" class="back-btn">Quay lại Trang chủ</a>
     </div>
 
@@ -124,16 +230,16 @@
       <table>
         <thead>
           <tr>
-  <th>ID</th>
-  <th>Họ tên</th>
-  <th>Email</th>
-  <th>Hành động</th>
-</tr>
+            <th>STT</th>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>Trạng thái</th>
+            <th>Hành động</th>
+          </tr>
         </thead>
-
         <tbody id="userTableBody">
           <tr>
-            <td colspan="4" class="empty">Đang tải dữ liệu...</td>
+            <td colspan="5" class="empty">Đang tải dữ liệu...</td>
           </tr>
         </tbody>
       </table>
@@ -142,81 +248,194 @@
     <p id="message" class="message"></p>
   </div>
 
-  <script>
-   const isLoggedIn = localStorage.getItem("isLoggedIn");
+  <script src="/socket.io/socket.io.js"></script>
 
-if (isLoggedIn !== "true") {
-  window.location.href = "/";
-}
+  <script>
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    if (isLoggedIn !== "true") {
+      window.location.href = "/";
+    }
+
+    const socket = io();
+
+    // Emit online khi vào trang
+    const savedUser = localStorage.getItem("currentUser");
+    if (savedUser) {
+      try {
+        const user = JSON.parse(savedUser);
+        socket.emit("user_online", {
+          username: user.name || "",
+          email: user.email || ""
+        });
+      } catch (e) {}
+    }
 
     const userTableBody = document.getElementById("userTableBody");
     const message = document.getElementById("message");
+    const onlineCountEl = document.getElementById("onlineCount");
 
-    async function loadUsers() {
-      const response = await fetch("/users");
-      const data = await response.json();
+    // Lưu danh sách email online
+    let onlineEmails = new Set();
+    let onlineUsernames = new Set();
 
-      if (!data.success) {
-        message.textContent = data.message;
-        return;
-      }
+    // Nhận danh sách online từ server
+    socket.on("online_users", function (users) {
+      onlineEmails = new Set(users.map(function (u) { return u.email; }));
+      onlineUsernames = new Set(users.map(function (u) { return u.username; }));
+      onlineCountEl.textContent = users.length;
+      updateAllStatusCells();
+    });
 
-      if (data.users.length === 0) {
-        userTableBody.innerHTML = `
-          <tr>
-            <td colspan="4" class="empty">Chưa có user nào</td>
-          </tr>
-        `;
-        return;
-      }
-
-      userTableBody.innerHTML = "";
-
-      const currentUserEmail = localStorage.getItem("userEmail");
-data.users.forEach(function (user, index) {
-  const row = document.createElement("tr");
-
-  const isCurrentUser = user.email === currentUserEmail;
-
-  row.innerHTML = `
-    <td>${index + 1}</td>
-    <td>${user.name}</td>
-    <td>${user.email}</td>
-    <td>
-      <button 
-        class="delete-btn" 
-        onclick="deleteUser(${user.id}, '${user.email}')"
-        ${isCurrentUser ? "disabled" : ""}
-      >
-        ${isCurrentUser ? "Tài khoản hiện tại" : "Xóa"}
-      </button>
-    </td>
-  `;
-
-  userTableBody.appendChild(row);
-});
+    function isOnlineByEmail(email) {
+      return onlineEmails.has(email);
     }
 
-    async function deleteUser(id, email) {
-  const confirmDelete = confirm("Bạn có chắc muốn xóa user: " + email + " không?");
+    function updateAllStatusCells() {
+      document.querySelectorAll("tr[data-email]").forEach(function (row) {
+        const email = row.dataset.email;
+        const online = isOnlineByEmail(email);
 
-  if (!confirmDelete) {
-    return;
-  }
+        const dot = row.querySelector(".status-dot");
+        const label = row.querySelector(".status-label");
+        const avatarDot = row.querySelector(".user-avatar-dot");
 
-  const response = await fetch("/users/" + id, {
-    method: "DELETE"
-  });
+        if (dot) {
+          dot.className = "status-dot " + (online ? "online" : "offline");
+        }
+        if (label) {
+          label.textContent = online ? "Online" : "Offline";
+          label.className = "status-label " + (online ? "online" : "offline");
+        }
+        if (avatarDot) {
+          avatarDot.className = "user-avatar-dot " + (online ? "online" : "");
+        }
+      });
+    }
 
-  const data = await response.json();
+    function escapeHTML(text) {
+      return String(text || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
 
-  if (data.success) {
-    alert("Xóa user thành công");
-    loadUsers();
-  } else {
-    alert(data.message);
-  }
-}
+    async function loadUsers() {
+      try {
+        const response = await fetch("/users");
+        const data = await response.json();
+
+        if (!data.success) {
+          message.textContent = data.message || "Không tải được danh sách user.";
+          return;
+        }
+
+        if (data.users.length === 0) {
+          userTableBody.innerHTML = `<tr><td colspan="5" class="empty">Chưa có user nào</td></tr>`;
+          return;
+        }
+
+        const currentUserEmail = localStorage.getItem("userEmail");
+        userTableBody.innerHTML = "";
+
+        data.users.forEach(function (user, index) {
+          const isCurrentUser = user.email === currentUserEmail;
+          const online = isOnlineByEmail(user.email);
+          const avatarLetter = (user.name || "?").charAt(0).toUpperCase();
+
+          const row = document.createElement("tr");
+          row.dataset.email = user.email;
+
+          // STT
+          const tdIndex = document.createElement("td");
+          tdIndex.textContent = index + 1;
+
+          // Họ tên với avatar
+          const tdName = document.createElement("td");
+          const nameCell = document.createElement("div");
+          nameCell.className = "name-cell";
+
+          const userAvatar = document.createElement("div");
+          userAvatar.className = "user-avatar";
+          userAvatar.textContent = avatarLetter;
+
+          const avatarDot = document.createElement("div");
+          avatarDot.className = "user-avatar-dot" + (online ? " online" : "");
+          userAvatar.appendChild(avatarDot);
+
+          nameCell.appendChild(userAvatar);
+          nameCell.appendChild(document.createTextNode(user.name));
+          tdName.appendChild(nameCell);
+
+          // Email
+          const tdEmail = document.createElement("td");
+          tdEmail.textContent = user.email;
+
+          // Trạng thái
+          const tdStatus = document.createElement("td");
+          const statusCell = document.createElement("div");
+          statusCell.className = "status-cell";
+
+          const statusDot = document.createElement("div");
+          statusDot.className = "status-dot " + (online ? "online" : "offline");
+
+          const statusLabel = document.createElement("span");
+          statusLabel.className = "status-label " + (online ? "online" : "offline");
+          statusLabel.textContent = online ? "Online" : "Offline";
+
+          statusCell.appendChild(statusDot);
+          statusCell.appendChild(statusLabel);
+          tdStatus.appendChild(statusCell);
+
+          // Hành động
+          const tdAction = document.createElement("td");
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "delete-btn";
+          deleteBtn.textContent = isCurrentUser ? "Tài khoản hiện tại" : "Xóa";
+          if (isCurrentUser) deleteBtn.disabled = true;
+          else {
+            deleteBtn.onclick = function () { deleteUser(user.id, user.email, deleteBtn); };
+          }
+          tdAction.appendChild(deleteBtn);
+
+          row.appendChild(tdIndex);
+          row.appendChild(tdName);
+          row.appendChild(tdEmail);
+          row.appendChild(tdStatus);
+          row.appendChild(tdAction);
+          userTableBody.appendChild(row);
+        });
+      } catch (err) {
+        message.textContent = "Không kết nối được server.";
+      }
+    }
+
+    async function deleteUser(id, email, btn) {
+      const confirmDelete = confirm("Bạn có chắc muốn xóa user: " + email + " không?");
+      if (!confirmDelete) return;
+
+      btn.disabled = true;
+      btn.textContent = "Đang xóa...";
+
+      try {
+        const response = await fetch("/users/" + id, { method: "DELETE" });
+        const data = await response.json();
+
+        if (data.success) {
+          loadUsers();
+        } else {
+          alert(data.message || "Xóa thất bại.");
+          btn.disabled = false;
+          btn.textContent = "Xóa";
+        }
+      } catch (err) {
+        alert("Không kết nối được server.");
+        btn.disabled = false;
+        btn.textContent = "Xóa";
+      }
+    }
+
     loadUsers();
   </script>
 </body>
